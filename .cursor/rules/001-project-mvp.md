@@ -13,15 +13,16 @@ Every decision below is locked. Nothing in this document is left for later negot
 
 - Sign up / sign in with Google or an email magic link.
 - Create a **role** - a named bucket for one hiring intent. The title can be specific
-  ("Senior Backend Engineer") or generic ("Agoda hiring"); the app treats both the same
-  way and only maintains the resumes collected under it. "Role" is the word used in the
-  UI, in the URLs, and in the database.
+  ("Senior Backend Engineer") or generic ("Hiring fullstack engineers"); the app treats
+  both the same way and only maintains the resumes collected under it. "Role" is the
+  word used in the UI, in the URLs, and in the database.
+- Optional company name. When present, it is shown on the public form under the title.
 - Optional role description field. When present, Gemini produces a 0-100 match score.
   When absent, no score is shown.
-- Get a shareable public URL, e.g. `/j/agoda-hiring-x7k2m9`.
+- Get a shareable public URL, e.g. `/j/hiring-fullstack-engineers-x7k2m9`.
 - Close a role so it stops accepting submissions. Closing is a reversible pause and
   touches nothing else - the rows and the stored files stay exactly as they are.
-- View the submission list: filter, sort, mark unread / shortlisted / rejected,
+- View the submission list: filter, sort, mark pending / shortlisted / rejected,
   open the original file, export to CSV.
 - Delete a role, which also deletes its stored resume files.
 
@@ -36,7 +37,7 @@ Every decision below is locked. Nothing in this document is left for later negot
 ### Explicitly out of scope for the MVP
 
 - No email notifications of any kind (recruiter or candidate).
-- No multi-stage pipeline (only unread / shortlisted / rejected).
+- No multi-stage pipeline (only pending / shortlisted / rejected).
 - No custom per-role questions.
 - No team accounts or shared access.
 - No candidate login or submission history.
@@ -91,7 +92,8 @@ model Role {
   id          String   @id @default(cuid())
   ownerId     String   // Supabase auth user id
   title       String
-  slug        String   @unique   // "agoda-hiring-x7k2m9"
+  companyName String?            // optional; shown on the public form
+  slug        String   @unique   // "hiring-fullstack-engineers-x7k2m9"
   description String?            // optional; drives the match score
   isOpen      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -118,7 +120,7 @@ model Submission {
   fileSize    Int
 
   // recruiter workflow
-  status ReviewStatus @default(UNREAD)
+  status ReviewStatus @default(PENDING)
 
   // Gemini output
   parseStatus     ParseStatus @default(PENDING)
@@ -126,12 +128,14 @@ model Submission {
   rawText         String?     @db.Text
   aiSummary       String?
   matchScore      Int?        // null when the role has no description
+  matchScoreReason String?    // one-line justification; shown as a tooltip on score
   parsedName      String?
   parsedEmail     String?
   parsedPhone     String?
   currentTitle    String?
   currentCompany  String?
   yearsExperience Float?
+  highlySkilledAt String?    // "Backend", "Frontend", "Fullstack", "Data", etc.
   location        String?
   skills          String[]
   education       Json?
@@ -150,7 +154,7 @@ model SubmitAttempt {
   @@index([ipHash, createdAt])
 }
 
-enum ReviewStatus { UNREAD SHORTLISTED REJECTED }
+enum ReviewStatus { PENDING SHORTLISTED REJECTED }
 enum ParseStatus  { PENDING DONE FAILED }
 ```
 
@@ -176,7 +180,7 @@ error (`P2002`) rather than relying on a read-then-write check alone.
 - `/login` - Google button + magic link email input. Honours `?next=`.
 - `/auth/callback` - route handler that exchanges the code for a cookie session, used
   by both providers.
-- `/roles/new` - title, optional description.
+- `/roles/new` - title, optional company name, optional description.
 - `/roles/[id]` - the candidate table. Copy-link button, close toggle, CSV export,
   filters, sorting, row detail panel.
 - `/j/[slug]` - public upload form. Renders a "no longer accepting submissions" state
@@ -186,7 +190,7 @@ error (`P2002`) rather than relying on a read-then-write check alone.
 ### API handlers
 
 - `POST /api/roles` - create a role, generate the slug.
-- `PATCH /api/roles/[id]` - rename, edit description, open/close.
+- `PATCH /api/roles/[id]` - rename, edit company name, edit description, open/close.
 - `DELETE /api/roles/[id]` - delete the role, cascade submissions, delete the storage
   folder.
 - `GET /api/roles/[id]/export` - CSV stream.
@@ -247,8 +251,10 @@ asks for strict JSON matching a schema, using Gemini's structured-output mode so
 not regex-parsing prose.
 
 Requested fields: full name, email, phone, current title, current company, total years
-of experience, location, skills array, education array, a two-line summary, and - only
-when the role has a description - a 0-100 match score with a one-line justification.
+of experience, primary strength (`highlySkilledAt`: Backend, Frontend, Fullstack, Data,
+or similar), location, skills array, education array, a two-line summary, and - only
+when the role has a description - a 0-100 match score with a one-line justification
+stored as `matchScoreReason` for the score tooltip.
 
 `rawText` is also stored so future features (keyword search, re-scoring against a new
 description) never need a second paid call.
@@ -278,8 +284,16 @@ thousand submissions a month stays in the low single-digit dollars.
 
 ## 8. Dashboard table
 
-Columns: name, email, phone, current title, company, years of experience, top skills,
-match score, status, submitted date.
+Columns: name, title, current company, years of experience (YOE), skills, highly
+skilled at, match score, status, submitted.
+
+- **Score tooltip:** the one-line justification against the role description
+  (`matchScoreReason`). The column header explains that the score is 0-100 vs that
+  description, and is empty when the role has no description.
+- **Submitted tooltip:** the full readable date and time; the cell itself stays
+  relative ("2h ago").
+- **Status:** while parsing, show Processing or Failed. Once parsed, show the review
+  flag: Pending, Shortlisted, or Rejected.
 
 - **Sort:** years of experience, match score, submitted date, name.
 - **Filter:** status, minimum years, minimum score, skill contains, free-text search

@@ -3,16 +3,18 @@
 Collect resumes through one shareable link instead of your inbox.
 
 A hiring person creates a **role** - a named bucket for one hiring intent, like
-"Senior Backend Engineer" or just "Agoda hiring" - and gets a public URL such as
-`/j/agoda-hiring-x7k2m9`. They post that link on LinkedIn. Every candidate who opens it
-fills in their name, email, and phone, attaches a resume, and submits. No account, no
+"Senior Backend Engineer" or "Hiring fullstack engineers" - and gets a public URL such
+as `/j/hiring-fullstack-engineers-x7k2m9`. They can add an optional company name and
+description. They post that link on LinkedIn. Every candidate who opens it fills in
+their name, email, and phone, attaches a resume, and submits. No account, no
 back-and-forth.
 
 Each submission is stored with its original file and then read once by Gemini Flash,
-which extracts the current title, company, years of experience, location, skills, and
-education, writes a two-line summary, and - when the role has a description - assigns a
-0-100 match score. The recruiter gets one table they can sort, filter, search, flag as
-shortlisted or rejected, and export to CSV.
+which extracts the current title, company, years of experience, primary strength
+(backend, frontend, fullstack, data, …), location, skills, and education, writes a
+two-line summary, and - when the role has a description - assigns a 0-100 match score.
+The recruiter gets one table they can sort, filter, search, flag as shortlisted or
+rejected, and export to CSV.
 
 ## Status
 

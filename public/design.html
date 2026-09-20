@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DropResume — design mock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #ab3df5;
+        --brand-hover: #9b2ee8;
+        --brand-deep: #7c18c8;
+        --brand-soft: #f6ecfe;
+        --brand-softer: #fbf7fe;
+        --brand-line: #ead6fa;
+        --ink: #1b1324;
+        --ink-2: #3f364c;
+        --muted: #6f657c;
+        --line: #eee8f3;
+        --line-strong: #e0d6ec;
+        --bg: #ffffff;
+        --bg-subtle: #faf8fc;
+        --ok: #057a55;
+        --ok-bg: #e7f6ef;
+        --warn: #b45309;
+        --warn-bg: #fef3c7;
+        --bad: #c81e1e;
+        --bad-bg: #fee2e2;
+        --shadow: 0 1px 2px rgba(27, 19, 36, 0.04),
+          0 10px 28px rgba(91, 33, 140, 0.06);
+        --shadow-lg: 0 18px 50px rgba(91, 33, 140, 0.14);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --header-h: 56px;
+        --review-h: 52px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg-subtle);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: var(--brand);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .review {
+        position: sticky;
+        top: 0;
+        z-index: 80;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: var(--review-h);
+        padding: 8px 16px;
+        background: var(--ink);
+        color: #fff;
+        overflow-x: auto;
+      }
+
+      .review-mark {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background: var(--brand);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      }
+
+      .review-tabs {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .review-tabs button,
+      .size-toggle button {
+        border: 0;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.72);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .review-tabs button.active,
+      .size-toggle button.active {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .size-toggle {
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 3px;
+        border-radius: 999px;
+        flex-shrink: 0;
+      }
+
+      .viewport-wrap {
+        min-height: calc(100vh - var(--review-h));
+        display: flex;
+        justify-content: center;
+        background: #efe8f6;
+      }
+
+      .viewport {
+        width: 100%;
+        background: var(--bg);
+        min-height: calc(100vh - var(--review-h));
+      }
+
+      .viewport.mobile {
+        width: 390px;
+        min-height: 844px;
+        margin: 24px 0 48px;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 8px solid var(--ink);
+      }
+
+      .screen {
+        display: none;
+        min-height: calc(100vh - var(--review-h));
+      }
+
+      .screen.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .viewport.mobile .screen {
+        min-height: 828px;
+      }
+
+      .topbar {
+        height: var(--header-h);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        font-size: 16px;
+        color: var(--ink);
+        text-decoration: none;
+      }
+
+      .brand:hover {
+        text-decoration: none;
+      }
+
+      .logo {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        background: var(--brand);
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+        color: var(--brand-deep);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 11px;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 28px 24px 64px;
+        flex: 1;
+      }
+
+      .page-sm {
+        max-width: 560px;
+      }
+
+      .page-narrow {
+        max-width: 440px;
+      }
+
+      .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      .page-head > .btn {
+        flex: 0 0 auto;
+        align-self: flex-start;
+        width: auto;
+      }
+
+      #inbox .page {
+        max-width: none;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: -0.04em;
+        font-weight: 700;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: -0.03em;
+      }
+
+      .sub {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 600;
+        font-size: 13px;
+        transition: 0.12s ease;
+        white-space: nowrap;
+      }
+
+      .btn:hover {
+        background: var(--brand-hover);
+      }
+
+      .btn-lg {
+        height: 44px;
+        width: 100%;
+        font-size: 14px;
+      }
+
+      .btn-outline {
+        background: #fff;
+        color: var(--ink);
+        border-color: var(--line-strong);
+      }
+
+      .btn-outline:hover {
+        background: var(--brand-softer);
+        border-color: var(--brand-line);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--ink-2);
+      }
+
+      .btn-ghost:hover {
+        background: var(--brand-softer);
+      }
+
+      .btn-danger {
+        background: var(--bad-bg);
+        color: var(--bad);
+      }
+
+      .btn-danger:hover {
+        background: #fecaca;
+      }
+
+      .btn-ok {
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+
+      .icon-btn {
+        width: 36px;
+        padding: 0;
+      }
+
+      [data-copy-link][data-copied] {
+        color: var(--ok);
+        border-color: var(--ok);
+      }
+
+      .empty {
+        margin-top: 48px;
+        text-align: center;
+        padding: 56px 24px;
+        border: 1px dashed var(--brand-line);
+        border-radius: 20px;
+        background: linear-gradient(180deg, var(--brand-softer), #fff);
+      }
+
+      .empty-art {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
+        border-radius: 20px;
+        background: var(--brand);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 30px rgba(171, 61, 245, 0.28);
+      }
+
+      .empty h1,
+      .empty h2 {
+        font-size: 22px;
+      }
+
+      .empty .sub {
+        max-width: 420px;
+        margin: 8px auto 20px;
+      }
+
+      .role-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .role-card {
+        display: grid;
+        gap: 6px;
+        padding: 18px 18px 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        text-align: left;
+        box-shadow: var(--shadow);
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .role-card:hover {
+        border-color: var(--brand-line);
+        box-shadow: 0 10px 28px rgba(171, 61, 245, 0.08);
+      }
+
+      .role-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .role-card h3 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: -0.03em;
+      }
+
+      .role-company {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+
+      .role-desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .role-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .slug {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        color: var(--ink-2);
+        background: var(--bg-subtle);
+        border: 1px solid var(--line);
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .badge-open,
+      .badge-active {
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+
+      .badge-closed,
+      .badge-archived {
+        background: #f3f0f6;
+        color: var(--muted);
+      }
+
+      .badge-unread,
+      .badge-pending {
+        background: var(--brand-soft);
+        color: var(--brand-deep);
+      }
+
+      .badge-shortlisted {
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+
+      .badge-rejected {
+        background: var(--bad-bg);
+        color: var(--bad);
+      }
+
+      .badge-processing {
+        background: var(--warn-bg);
+        color: var(--warn);
+      }
+
+      .badge-failed {
+        background: var(--bad-bg);
+        color: var(--bad);
+      }
+
+      .auth-shell,
+      .public-shell {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        background:
+          radial-gradient(1200px 400px at 50% -10%, rgba(171, 61, 245, 0.16), transparent 60%),
+          var(--bg-subtle);
+      }
+
+      .card {
+        width: 100%;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      .field span,
+      .field label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="search"],
+      select,
+      textarea {
+        width: 100%;
+        height: 40px;
+        border: 1px solid var(--line-strong);
+        border-radius: 10px;
+        padding: 0 12px;
+        background: #fff;
+        outline: none;
+      }
+
+      textarea {
+        height: 120px;
+        padding: 10px 12px;
+        resize: vertical;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 4px var(--brand-soft);
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 18px 0;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: var(--line);
+      }
+
+      .google {
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--line-strong);
+      }
+
+      .google:hover {
+        background: var(--bg-subtle);
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .search {
+        flex: 0 0 240px;
+        width: 240px;
+        min-width: 200px;
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .filters select,
+      .filters input {
+        height: 36px;
+        width: auto;
+        min-width: 120px;
+      }
+
+      .table-wrap {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: auto;
+        background: #fff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1180px;
+      }
+
+      th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        font-weight: 700;
+        padding: 10px 8px;
+        background: var(--bg-subtle);
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+        font-size: 13px;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody tr {
+        cursor: pointer;
+      }
+
+      tbody tr:hover,
+      tbody tr.selected {
+        background: var(--brand-softer);
+      }
+
+      .name-cell {
+        font-weight: 600;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .chip {
+        background: var(--brand-soft);
+        color: var(--brand-deep);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .score {
+        font-weight: 700;
+        color: var(--brand-deep);
+      }
+
+      .score.mid {
+        color: var(--warn);
+      }
+
+      .score.low {
+        color: var(--muted);
+      }
+
+      .has-tip {
+        position: relative;
+        cursor: help;
+      }
+
+      .has-tip::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 8px);
+        background: var(--ink);
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.35;
+        width: max-content;
+        max-width: 260px;
+        text-transform: none;
+        letter-spacing: 0;
+        white-space: normal;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+        box-shadow: var(--shadow);
+      }
+
+      th.has-tip::after {
+        left: auto;
+        right: 0;
+      }
+
+      .has-tip:hover::after,
+      .has-tip:focus::after {
+        opacity: 1;
+      }
+
+      .tip-dot {
+        display: inline-grid;
+        place-items: center;
+        width: 14px;
+        height: 14px;
+        margin-left: 4px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+        color: var(--brand-deep);
+        font-size: 10px;
+        vertical-align: middle;
+      }
+
+      .bulk {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--brand-soft);
+        border: 1px solid var(--brand-line);
+        border-radius: 12px;
+        margin-bottom: 12px;
+      }
+
+      .bulk.show {
+        display: flex;
+      }
+
+      .role-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px 4px 4px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        background: #fff;
+        height: 36px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .switch i {
+        width: 28px;
+        height: 16px;
+        background: var(--ok);
+        border-radius: 999px;
+        position: relative;
+      }
+
+      .switch i::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 14px;
+      }
+
+      .switch.off i {
+        background: #c8c2d0;
+      }
+
+      .switch.off i::after {
+        left: 2px;
+      }
+
+      .layout-split {
+        display: block;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .drawer {
+        position: fixed;
+        top: calc(var(--review-h) + var(--header-h));
+        right: 0;
+        bottom: 0;
+        width: min(380px, 92vw);
+        border-left: 1px solid var(--line);
+        background: #fff;
+        padding: 20px;
+        display: none;
+        z-index: 20;
+        box-shadow: -16px 0 40px rgba(91, 33, 140, 0.08);
+        overflow: auto;
+      }
+
+      .drawer.open {
+        display: block;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 8px 12px;
+        margin: 16px 0;
+        font-size: 13px;
+      }
+
+      .kv dt {
+        color: var(--muted);
+      }
+
+      .summary {
+        background: var(--brand-softer);
+        border: 1px solid var(--brand-line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: var(--ink-2);
+      }
+
+      .dropzone {
+        border: 1.5px dashed var(--brand-line);
+        background: var(--brand-softer);
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .dropzone strong {
+        color: var(--brand-deep);
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .turnstile {
+        margin-top: 12px;
+        height: 56px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: repeating-linear-gradient(
+          -45deg,
+          #f7f5fa,
+          #f7f5fa 8px,
+          #fff 8px,
+          #fff 16px
+        );
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .thanks-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: var(--ok-bg);
+        color: var(--ok);
+        display: grid;
+        place-items: center;
+        margin: 0 auto 16px;
+      }
+
+      .cards {
+        display: none;
+        gap: 10px;
+      }
+
+      .cand-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: #fff;
+        text-align: left;
+        width: 100%;
+      }
+
+      .cand-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .back {
+        display: inline-grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        margin-bottom: 12px;
+        border: 0;
+        border-radius: 10px;
+        background: none;
+        color: var(--ink-2);
+        padding: 0;
+      }
+
+      .back:hover {
+        background: var(--brand-softer);
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 16px;
+      }
+
+      .pagination button {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid var(--line-strong);
+        background: #fff;
+        border-radius: 10px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .pagination button.active {
+        background: var(--brand);
+        color: #fff;
+        border-color: var(--brand);
+      }
+
+      .error {
+        margin-top: 12px;
+        background: var(--bad-bg);
+        color: var(--bad);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .closed-art {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 14px;
+        border-radius: 16px;
+        background: #f3f0f6;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+      }
+
+      .footer-note {
+        text-align: center;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .table-wrap {
+          display: none;
+        }
+
+        .cards {
+          display: grid;
+        }
+
+        .layout-split {
+          grid-template-columns: 1fr;
+        }
+
+        .drawer {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+
+        .page-head {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .role-actions {
+          flex-direction: row;
+          align-items: center;
+        }
+
+        .toolbar {
+          overflow-x: auto;
+        }
+
+        h1 {
+          font-size: 22px;
+        }
+      }
+
+      .viewport.mobile .table-wrap {
+        display: none;
+      }
+
+      .viewport.mobile .cards {
+        display: grid;
+      }
+
+      .viewport.mobile .layout-split {
+        grid-template-columns: 1fr;
+      }
+
+      .viewport.mobile .page {
+        padding: 20px 16px 40px;
+      }
+
+      .viewport.mobile .topbar {
+        padding: 0 14px;
+      }
+
+      .hide-mobile {
+        display: initial;
+      }
+
+      .viewport.mobile .hide-mobile {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="review">
+      <div class="review-mark">
+        <span class="swatch"></span>
+        DropResume mock · white + #AB3DF5
+      </div>
+      <div class="review-tabs" id="tabs"></div>
+      <div class="size-toggle">
+        <button type="button" class="active" data-size="desktop">Desktop</button>
+        <button type="button" data-size="mobile">Mobile</button>
+      </div>
+    </div>
+
+    <div class="viewport-wrap">
+      <div class="viewport" id="viewport">
+        <!-- 1. Signed-out dashboard -->
+        <section class="screen active" id="home-out" data-label="Signed out">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="home-out">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+            <button class="btn btn-ghost" data-go="login">Sign in</button>
+          </header>
+          <main class="page">
+            <div class="empty">
+              <div class="empty-art" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </div>
+              <h1>Share one link. Collect every resume in one list.</h1>
+              <p class="sub">
+                Create a role, post the URL, and every candidate lands here with
+                AI-extracted fields you can filter, shortlist, and export.
+              </p>
+              <button class="btn" data-go="login">New role</button>
+            </div>
+          </main>
+        </section>
+
+        <!-- 2. Signed-in dashboard -->
+        <section class="screen" id="home-in" data-label="Dashboard">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="home-in">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+            <div class="user-chip">
+              <span class="avatar">GV</span>
+              <span class="hide-mobile">gaurav@agoda.com</span>
+              <button class="btn btn-ghost" data-go="home-out">Sign out</button>
+            </div>
+          </header>
+          <main class="page">
+            <div class="page-head">
+              <div>
+                <h1>Roles</h1>
+                <p class="sub">Each role gets a public link candidates can submit to.</p>
+              </div>
+              <button class="btn" data-go="new-role">New role</button>
+            </div>
+            <div class="role-list">
+              <article class="role-card" data-go="inbox">
+                <div class="role-card-top">
+                  <h3>Senior Backend Engineer</h3>
+                  <button type="button" class="btn btn-outline icon-btn" data-copy-link aria-label="Copy link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="role-company">Razorpay</p>
+                <p class="role-desc">
+                  We're hiring a Senior Backend Engineer to work on payments APIs.
+                  5+ years with Go or Java, Postgres, and distributed systems.
+                </p>
+                <div class="role-meta">
+                  <span>12 submissions</span>
+                  <span class="badge badge-active">Active</span>
+                </div>
+              </article>
+              <article class="role-card" data-go="inbox">
+                <div class="role-card-top">
+                  <h3>Hiring fullstack engineers</h3>
+                  <button type="button" class="btn btn-outline icon-btn" data-copy-link aria-label="Copy link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="role-desc">
+                  Looking for fullstack engineers who can move across React, Node,
+                  and product work without dropping the quality of either side.
+                </p>
+                <div class="role-meta">
+                  <span>3 submissions</span>
+                  <span class="badge badge-active">Active</span>
+                </div>
+              </article>
+              <article class="role-card" data-go="inbox">
+                <div class="role-card-top">
+                  <h3>Product Designer</h3>
+                  <button type="button" class="btn btn-outline icon-btn" data-copy-link aria-label="Copy link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="role-company">Grab</p>
+                <p class="role-desc">
+                  Own the hiring experience for consumer apps — research, flows,
+                  and a polished visual system across web and mobile.
+                </p>
+                <div class="role-meta">
+                  <span>27 submissions</span>
+                  <span class="badge badge-archived">Archived</span>
+                </div>
+              </article>
+            </div>
+          </main>
+        </section>
+
+        <!-- 3. Login -->
+        <section class="screen" id="login" data-label="Login">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="home-out">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+          </header>
+          <div class="auth-shell">
+            <div class="card page-narrow">
+              <h1>Sign in</h1>
+              <button class="btn btn-lg google" style="margin-top: 20px" data-go="home-in">
+                <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+                  <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z"/>
+                  <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                  <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.2C29.2 35.3 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                  <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.5 5.7-6.6 7.1l.1.1 6.3 5.2C36.8 41.3 44 36 44 24c0-1.3-.1-2.5-.4-3.5z"/>
+                </svg>
+                Continue with Google
+              </button>
+              <div class="divider">OR</div>
+              <label class="field">
+                <span>Email</span>
+                <input type="email" placeholder="you@company.com" />
+              </label>
+              <button class="btn btn-lg" style="margin-top: 14px" data-go="home-in">
+                Send magic link
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. New role -->
+        <section class="screen" id="new-role" data-label="New role">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="home-in">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+            <div class="user-chip">
+              <span class="avatar">GV</span>
+              <button class="btn btn-ghost" data-go="home-out">Sign out</button>
+            </div>
+          </header>
+          <main class="page page-sm">
+            <button class="back" data-go="home-in" aria-label="Back">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <h1>New role</h1>
+            <p class="sub">
+              A role is a named bucket. Specific (“Senior Backend Engineer”) or
+              generic (“Hiring fullstack engineers”) both work.
+            </p>
+            <label class="field">
+              <span>Title</span>
+              <input type="text" value="Senior Backend Engineer" />
+            </label>
+            <label class="field">
+              <span>Company name <span class="hint">(optional)</span></span>
+              <input type="text" value="Razorpay" placeholder="Shown on the public form" />
+            </label>
+            <label class="field">
+              <span>Description <span class="hint">(optional)</span></span>
+              <textarea>
+We're hiring a Senior Backend Engineer to work on payments APIs. 5+ years with Go or Java, Postgres, and distributed systems. Bangkok or remote SEA.
+              </textarea>
+              <span class="hint">If you add a description, each resume gets a match score.</span>
+            </label>
+            <button class="btn" style="margin-top: 18px" data-go="inbox">Create role</button>
+          </main>
+        </section>
+
+        <!-- 5. Candidate inbox -->
+        <section class="screen" id="inbox" data-label="Inbox">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="home-in">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+            <div class="user-chip">
+              <span class="avatar">GV</span>
+              <button class="btn btn-ghost" data-go="home-out">Sign out</button>
+            </div>
+          </header>
+          <div class="layout-split">
+            <main class="page" style="padding-bottom: 32px">
+              <button class="back" data-go="home-in" aria-label="Back">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+              <div class="page-head">
+                <div>
+                  <h1>Senior Backend Engineer</h1>
+                  <p class="sub">Razorpay · 12 submissions</p>
+                </div>
+                <div class="role-actions">
+                  <button type="button" class="switch" id="active-toggle" aria-pressed="true">
+                    <i></i> <span>Active</span>
+                  </button>
+                  <button type="button" class="btn btn-outline icon-btn" data-copy-link aria-label="Copy link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn btn-outline icon-btn" aria-label="Export CSV">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <path d="M7 10l5 5 5-5" />
+                      <path d="M12 15V3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="toolbar">
+                <input class="search" type="search" placeholder="Search name, title, company…" />
+                <div class="filters">
+                  <select>
+                    <option>All statuses</option>
+                    <option>Pending</option>
+                    <option>Shortlisted</option>
+                    <option>Rejected</option>
+                    <option>Processing</option>
+                    <option>Failed</option>
+                  </select>
+                  <input type="text" placeholder="Min years" style="width: 108px" />
+                  <input type="text" placeholder="Min score" style="width: 108px" />
+                  <input type="text" placeholder="Skill contains" />
+                </div>
+              </div>
+
+              <div class="bulk" id="bulk">
+                <strong>2 selected</strong>
+                <button class="btn btn-ok" style="height: 30px">Shortlist</button>
+                <button class="btn btn-danger" style="height: 30px">Reject</button>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" id="check-all" /></th>
+                      <th>Name</th>
+                      <th>Title</th>
+                      <th>Current company</th>
+                      <th>YOE</th>
+                      <th>Skills</th>
+                      <th>Highly skilled at</th>
+                      <th class="has-tip" data-tip="0–100 match against this role’s description. Empty if the role has no description.">
+                        Score <span class="tip-dot">i</span>
+                      </th>
+                      <th>Status</th>
+                      <th>Submitted</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-open-drawer>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Priya Sharma</div>
+                        <div class="muted">priya@gmail.com</div>
+                      </td>
+                      <td>Senior Backend Engineer</td>
+                      <td>Razorpay</td>
+                      <td>6</td>
+                      <td>
+                        <div class="skills">
+                          <span class="chip">Go</span>
+                          <span class="chip">Postgres</span>
+                          <span class="chip">Kafka</span>
+                        </div>
+                      </td>
+                      <td><span class="chip">Backend</span></td>
+                      <td>
+                        <span class="score has-tip" data-tip="Strong overlap with payments APIs, Go, and distributed systems in the role description.">88</span>
+                      </td>
+                      <td><span class="badge badge-pending">Pending</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="19 Sep 2026, 4:14 PM">2h ago</span>
+                      </td>
+                    </tr>
+                    <tr data-open-drawer>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Marcus Chen</div>
+                        <div class="muted">marcus.chen@stripe.com</div>
+                      </td>
+                      <td>Staff Engineer</td>
+                      <td>Stripe</td>
+                      <td>9</td>
+                      <td>
+                        <div class="skills">
+                          <span class="chip">Java</span>
+                          <span class="chip">Kubernetes</span>
+                        </div>
+                      </td>
+                      <td><span class="chip">Fullstack</span></td>
+                      <td>
+                        <span class="score has-tip" data-tip="Deep distributed-systems background; slightly broader than the backend-only description.">92</span>
+                      </td>
+                      <td><span class="badge badge-shortlisted">Shortlisted</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="18 Sep 2026, 6:42 PM">Yesterday</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Aisha Rahman</div>
+                        <div class="muted">aisha.r@hey.com</div>
+                      </td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td><span class="badge badge-processing">Processing</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="19 Sep 2026, 6:02 PM">Just now</span>
+                      </td>
+                    </tr>
+                    <tr data-open-drawer>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Tom Nguyen</div>
+                        <div class="muted">tom.nguyen@email.com</div>
+                      </td>
+                      <td>Software Engineer</td>
+                      <td>Grab</td>
+                      <td>3</td>
+                      <td>
+                        <div class="skills">
+                          <span class="chip">Node</span>
+                          <span class="chip">React</span>
+                        </div>
+                      </td>
+                      <td><span class="chip">Frontend</span></td>
+                      <td>
+                        <span class="score mid has-tip" data-tip="Frontend-heavy profile; thinner overlap with the Go/Java backend description.">64</span>
+                      </td>
+                      <td><span class="badge badge-rejected">Rejected</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="16 Sep 2026, 11:08 AM">3d ago</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Elena Popov</div>
+                        <div class="muted">elena@pm.me</div>
+                      </td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td class="muted">—</td>
+                      <td><span class="badge badge-failed">Failed</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="15 Sep 2026, 9:31 AM">4d ago</span>
+                      </td>
+                    </tr>
+                    <tr data-open-drawer>
+                      <td><input type="checkbox" class="row-check" /></td>
+                      <td>
+                        <div class="name-cell">Kenji Sato</div>
+                        <div class="muted">kenji.sato@gmail.com</div>
+                      </td>
+                      <td>Data Engineer</td>
+                      <td>Grab</td>
+                      <td>5</td>
+                      <td>
+                        <div class="skills">
+                          <span class="chip">Python</span>
+                          <span class="chip">Spark</span>
+                        </div>
+                      </td>
+                      <td><span class="chip">Data</span></td>
+                      <td>
+                        <span class="score mid has-tip" data-tip="Strong data stack, but the role description asks for backend services, not pipelines.">58</span>
+                      </td>
+                      <td><span class="badge badge-pending">Pending</span></td>
+                      <td>
+                        <span class="muted has-tip" data-tip="14 Sep 2026, 2:20 PM">5d ago</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="cards">
+                <button class="cand-card" data-open-drawer>
+                  <div class="cand-top">
+                    <strong>Priya Sharma</strong>
+                    <span class="badge badge-pending">Pending</span>
+                  </div>
+                  <div class="muted">Senior Backend Engineer · Razorpay</div>
+                  <div class="role-meta" style="margin-top: 8px">
+                    <span>6 YOE</span>
+                    <span class="chip">Backend</span>
+                    <span class="score has-tip" data-tip="Strong overlap with payments APIs, Go, and distributed systems in the role description.">88</span>
+                    <span class="muted has-tip" data-tip="19 Sep 2026, 4:14 PM">2h ago</span>
+                  </div>
+                </button>
+                <button class="cand-card" data-open-drawer>
+                  <div class="cand-top">
+                    <strong>Marcus Chen</strong>
+                    <span class="badge badge-shortlisted">Shortlisted</span>
+                  </div>
+                  <div class="muted">Staff Engineer · Stripe</div>
+                  <div class="role-meta" style="margin-top: 8px">
+                    <span>9 YOE</span>
+                    <span class="chip">Fullstack</span>
+                    <span class="score has-tip" data-tip="Deep distributed-systems background; slightly broader than the backend-only description.">92</span>
+                    <span class="muted has-tip" data-tip="18 Sep 2026, 6:42 PM">Yesterday</span>
+                  </div>
+                </button>
+                <button class="cand-card">
+                  <div class="cand-top">
+                    <strong>Aisha Rahman</strong>
+                    <span class="badge badge-processing">Processing</span>
+                  </div>
+                  <div class="muted">Resume is being read</div>
+                </button>
+                <button class="cand-card">
+                  <div class="cand-top">
+                    <strong>Elena Popov</strong>
+                    <span class="badge badge-failed">Failed</span>
+                  </div>
+                  <div class="muted">Couldn’t parse · <span class="has-tip" data-tip="15 Sep 2026, 9:31 AM">4d ago</span></div>
+                </button>
+              </div>
+
+              <nav class="pagination" aria-label="Pagination">
+                <button type="button" aria-label="Previous page">‹</button>
+                <button type="button" class="active">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
+                <button type="button" aria-label="Next page">›</button>
+              </nav>
+            </main>
+
+            <aside class="drawer" id="drawer">
+              <div class="cand-top">
+                <div>
+                  <h2>Priya Sharma</h2>
+                  <p class="sub">priya@gmail.com · +91 98765 43210</p>
+                </div>
+                <button class="btn btn-ghost icon-btn" id="close-drawer">✕</button>
+              </div>
+              <div class="role-actions" style="margin-top: 14px">
+                <button class="btn btn-ok" style="height: 32px">Shortlist</button>
+                <button class="btn btn-danger" style="height: 32px">Reject</button>
+                <button class="btn btn-outline" style="height: 32px">Open resume</button>
+              </div>
+              <p class="summary" style="margin-top: 16px">
+                Backend engineer at Razorpay focused on payments APIs. Strong Go /
+                Postgres / Kafka. 6 years, Bangalore. Close match for the role’s
+                distributed-systems requirement.
+              </p>
+              <dl class="kv">
+                <dt>Title</dt>
+                <dd>Senior Backend Engineer</dd>
+                <dt>Company</dt>
+                <dd>Razorpay</dd>
+                <dt>Experience</dt>
+                <dd>6 years</dd>
+                <dt>Focus</dt>
+                <dd><span class="chip">Backend</span></dd>
+                <dt>Location</dt>
+                <dd>Bangalore</dd>
+                <dt>Score</dt>
+                <dd>
+                  <span class="score has-tip" data-tip="Strong overlap with payments APIs, Go, and distributed systems in the role description.">88 / 100</span>
+                </dd>
+                <dt>Skills</dt>
+                <dd>
+                  <div class="skills">
+                    <span class="chip">Go</span>
+                    <span class="chip">Postgres</span>
+                    <span class="chip">Kafka</span>
+                    <span class="chip">gRPC</span>
+                  </div>
+                </dd>
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <!-- 6. Public apply -->
+        <section class="screen" id="apply" data-label="Apply">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="apply">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+          </header>
+          <div class="public-shell">
+            <div class="card page-narrow">
+              <p class="badge badge-active" style="margin-bottom: 12px">Active</p>
+              <h1>Senior Backend Engineer</h1>
+              <p class="sub">Razorpay · Attach your resume to apply. No account needed.</p>
+              <label class="field">
+                <span>Full name</span>
+                <input type="text" placeholder="Priya Sharma" />
+              </label>
+              <label class="field">
+                <span>Email</span>
+                <input type="email" placeholder="you@email.com" />
+              </label>
+              <label class="field">
+                <span>Phone <span class="hint">(optional)</span></span>
+                <input type="tel" placeholder="+66 81 234 5678" />
+              </label>
+              <div class="field">
+                <span>Resume</span>
+                <div class="dropzone">
+                  <strong>Drop a PDF, JPG, or PNG</strong>
+                  Max 2 MB.
+                </div>
+              </div>
+              <div class="turnstile">Cloudflare Turnstile</div>
+              <button class="btn btn-lg" style="margin-top: 16px" data-go="thanks">
+                Submit application
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. Thanks -->
+        <section class="screen" id="thanks" data-label="Thanks">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="apply">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+          </header>
+          <div class="public-shell">
+            <div class="card page-narrow" style="text-align: center">
+              <div class="thanks-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M20 7 10 17l-6-6"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <h1>Application received</h1>
+              <p class="sub">
+                Your resume for <strong>Senior Backend Engineer</strong> is in.
+                You can close this tab.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. Closed -->
+        <section class="screen" id="closed" data-label="Closed">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="closed">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+          </header>
+          <div class="public-shell">
+            <div class="card page-narrow" style="text-align: center">
+              <div class="closed-art" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h1>This role is no longer accepting submissions</h1>
+              <p class="sub">
+                Product Designer has been closed. If you already applied, your
+                resume is still with the hiring team.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. Duplicate error -->
+        <section class="screen" id="duplicate" data-label="Duplicate">
+          <header class="topbar">
+            <a class="brand" href="#" data-go="apply">
+              <span class="logo" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2.2C8 2.2 4.4 6.4 4.4 9.1a3.6 3.6 0 1 0 7.2 0C11.6 6.4 8 2.2 8 2.2Z"
+                    fill="white"
+                  />
+                </svg>
+              </span>
+              DropResume
+            </a>
+          </header>
+          <div class="public-shell">
+            <div class="card page-narrow">
+              <h1>Senior Backend Engineer</h1>
+              <p class="sub">Attach your resume to apply. No account needed.</p>
+              <label class="field">
+                <span>Full name</span>
+                <input type="text" value="Priya Sharma" />
+              </label>
+              <label class="field">
+                <span>Email</span>
+                <input type="email" value="priya@gmail.com" />
+              </label>
+              <div class="error">
+                This email already submitted for this role.
+              </div>
+              <button class="btn btn-lg" style="margin-top: 16px">Submit application</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const screens = [...document.querySelectorAll(".screen")];
+      const tabs = document.getElementById("tabs");
+      const viewport = document.getElementById("viewport");
+
+      screens.forEach((screen) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = screen.dataset.label;
+        btn.dataset.go = screen.id;
+        if (screen.classList.contains("active")) btn.classList.add("active");
+        tabs.appendChild(btn);
+      });
+
+      function show(id) {
+        screens.forEach((screen) => {
+          screen.classList.toggle("active", screen.id === id);
+        });
+        tabs.querySelectorAll("button").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.go === id);
+        });
+        history.replaceState(null, "", "#/" + id);
+      }
+
+      document.body.addEventListener("click", (event) => {
+        const copy = event.target.closest("[data-copy-link]");
+        if (copy) {
+          event.preventDefault();
+          event.stopPropagation();
+          copy.setAttribute("data-copied", "true");
+          setTimeout(() => copy.removeAttribute("data-copied"), 1200);
+          return;
+        }
+        const go = event.target.closest("[data-go]");
+        if (go) {
+          event.preventDefault();
+          show(go.dataset.go);
+        }
+      });
+
+      document.querySelectorAll("[data-size]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-size]").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          viewport.classList.toggle("mobile", btn.dataset.size === "mobile");
+        });
+      });
+
+      const bulk = document.getElementById("bulk");
+      const checks = [...document.querySelectorAll(".row-check")];
+      function refreshBulk() {
+        const n = checks.filter((c) => c.checked).length;
+        bulk.classList.toggle("show", n > 0);
+        bulk.querySelector("strong").textContent = n + " selected";
+      }
+      checks.forEach((c) => c.addEventListener("change", refreshBulk));
+      document.getElementById("check-all")?.addEventListener("change", (e) => {
+        checks.forEach((c) => (c.checked = e.target.checked));
+        refreshBulk();
+      });
+
+      const drawer = document.getElementById("drawer");
+      document.querySelectorAll("[data-open-drawer]").forEach((el) => {
+        el.addEventListener("click", (event) => {
+          if (event.target.closest("input")) return;
+          drawer.classList.add("open");
+        });
+      });
+      document.getElementById("close-drawer")?.addEventListener("click", () => {
+        drawer.classList.remove("open");
+      });
+
+      document.getElementById("active-toggle")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        const btn = event.currentTarget;
+        const on = btn.getAttribute("aria-pressed") !== "true";
+        btn.setAttribute("aria-pressed", String(on));
+        btn.classList.toggle("off", !on);
+        btn.querySelector("span").textContent = on ? "Active" : "Inactive";
+      });
+
+      document.querySelectorAll(".pagination").forEach((nav) => {
+        nav.addEventListener("click", (event) => {
+          const btn = event.target.closest("button");
+          if (!btn || btn.getAttribute("aria-label")) return;
+          nav.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+        });
+      });
+
+      const initial = location.hash.replace("#/", "");
+      if (screens.some((s) => s.id === initial)) show(initial);
+    </script>
+  </body>
+</html>

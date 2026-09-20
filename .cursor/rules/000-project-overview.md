@@ -47,8 +47,9 @@ The full plan is written to `./001-project-mvp.md`.
 - Supabase Postgres + Supabase Storage (private bucket, signed URLs).
 - Prisma, pinned to `7.10.0`.
 - Supabase Auth: Google + email magic link.
-- Gemini Flash via `@google/genai`: parse + two-line summary + 0-100 score when a role
-  description exists.
+- Gemini Flash via `@google/genai`: parse + two-line summary + highlySkilledAt + 0-100
+  score (with a tooltip justification) when a role description exists.
+- Role create fields: title (required), company name (optional), description (optional).
 - Background parse via `after()` from `next/server`.
 - Candidate form: name and email required, phone optional, plus the file.
 - Accepted files: **PDF, JPG, PNG only.** DOC and DOCX are rejected with a message
@@ -58,10 +59,10 @@ The full plan is written to `./001-project-mvp.md`.
   table keyed by a salted IP hash. No Upstash account.
 - Resume files are deleted **only when a role is deleted**. Closing a role stops new
   submissions and touches nothing else. No time-based expiry.
-- Status flags only: unread / shortlisted / rejected.
+- Status flags only: pending / shortlisted / rejected.
 - CSV export, duplicate-email rejection, close toggle.
 - No email notifications.
-- Public URLs like `/j/agoda-hiring-x7k2m9`.
+- Public URLs like `/j/hiring-fullstack-engineers-x7k2m9`.
 
 ## Routing
 
@@ -81,9 +82,10 @@ The rest of the tree is `/login`, `/auth/callback`, `/roles/new`, `/roles/[id]`,
 
 ## Data model
 
-Three tables. `Role` holds ownerId, title, slug, optional description, isOpen.
-`Submission` holds the typed fields, the storage path, a review status, a parse status,
-and the Gemini output including `rawText` so re-scoring never costs a second API call;
+Three tables. `Role` holds ownerId, title, optional companyName, slug, optional
+description, isOpen. `Submission` holds the typed fields, the storage path, a review
+status, a parse status, and the Gemini output including `rawText`, `highlySkilledAt`,
+and `matchScoreReason` so re-scoring never costs a second API call;
 `@@unique([roleId, candidateEmail])` is what enforces duplicate rejection correctly
 under concurrent submissions. `SubmitAttempt` holds a salted IP hash and a timestamp for
 rate limiting.
