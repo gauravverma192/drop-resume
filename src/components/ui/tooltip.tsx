@@ -20,7 +20,13 @@ function TooltipProvider({
 function Tooltip({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+  // Radix throws without a provider, so each tooltip carries its own. Nesting
+  // inside an outer TooltipProvider is supported.
+  return (
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
 }
 
 function TooltipTrigger({
