@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { requireUser } from "@/lib/auth/session";
 import { bulkUpdateSubmissionsSchema } from "@/lib/contracts/submissions";
 import { validationError } from "@/lib/contracts/errors";
 import { bulkUpdateSubmissionStatus } from "@/lib/data";
-import { caughtErrorResponse, jsonError, requireApiUser } from "@/lib/http/api";
+import { caughtErrorResponse, jsonError } from "@/lib/http/api";
 
 export async function PATCH(request: Request) {
   try {
-    const user = await requireApiUser();
+    const user = await requireUser();
     const body: unknown = await request.json();
     const parsed = bulkUpdateSubmissionsSchema.safeParse(body);
     if (!parsed.success) {

@@ -1,12 +1,13 @@
+import { requireUser } from "@/lib/auth/session";
 import { getSubmissionFile } from "@/lib/data";
-import { caughtErrorResponse, requireApiUser } from "@/lib/http/api";
+import { caughtErrorResponse } from "@/lib/http/api";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireApiUser();
+    const user = await requireUser();
     const { id } = await params;
     const file = await getSubmissionFile(user.id, id);
     return new Response(Buffer.from(file.bytes), {

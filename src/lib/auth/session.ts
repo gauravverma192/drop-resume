@@ -1,23 +1,12 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import type { User } from "@supabase/supabase-js";
 
+import { isMockAuth, readMockSession } from "@/lib/auth/mock-session";
+import { DataError } from "@/lib/data/errors";
 import type { SessionUser } from "@/lib/data/types";
-
-const SESSION_COOKIE = "dr_session";
-
-const sessionSchema = z.object({
-  id: z.string().min(1),
-  email: z.email(),
-  name: z.string().min(1),
-});
-
-/** Seeded owner; Google and magic link both mint this id so the demo roles stay visible. */
-const MOCK_OWNER: SessionUser = {
-  id: "user_gaurav",
-  email: "gaurav@agoda.com",
-  name: "Gaurav Verma",
-};
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /** Only same-origin paths survive `?next=` — protocol-relative and open redirects do not. */
 function safeInternalPath(value: unknown) {
@@ -26,47 +15,109 @@ function safeInternalPath(value: unknown) {
   return value;
 }
 
-async function getSession(): Promise<SessionUser | null> {
-  const store = await cookies();
-  const raw = store.get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-
-  try {
-    return sessionSchema.parse(JSON.parse(raw));
-  } catch {
-    return null;
-  }
+/** Builds the one URL every failed or pending sign-in bounces back to. */
+function loginPath({
+  next,
+  error,
+  sent,
+}: { next?: string; error?: string; sent?: string } = {}) {
+  const params = new URLSearchParams();
+  const safeNext = safeInternalPath(next);
+  if (safeNext && safeNext !== "/") params.set("next", safeNext);
+  if (error) params.set("error", error);
+  if (sent) params.set("sent", sent);
+  const query = params.toString();
+  return query ? `/login?${query}` : "/login";
 }
 
-async function createSession(user: SessionUser) {
+const NEXT_COOKIE = "dr_auth_next";
+
+/**
+ * Parks the post-sign-in destination for the callback to pick up. The query
+ * string carries it for OAuth, but a magic link is built from a Supabase email
+ * template we do not control, so the cookie is the path that always survives.
+ */
+async function rememberNextPath(next: string) {
   const store = await cookies();
-  store.set(SESSION_COOKIE, JSON.stringify(user), {
+  if (next === "/") {
+    store.delete(NEXT_COOKIE);
+    return;
+  }
+  store.set(NEXT_COOKIE, next, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
+    maxAge: 60 * 60,
     secure: process.env.NODE_ENV === "production",
   });
 }
 
-async function clearSession() {
+/** Reads and clears it: one sign-in, one redirect. */
+async function takeNextPath() {
   const store = await cookies();
-  store.delete(SESSION_COOKIE);
+  const parked = safeInternalPath(store.get(NEXT_COOKIE)?.value);
+  store.delete(NEXT_COOKIE);
+  return parked;
 }
 
+/** Google fills these in; a magic-link user arrives with no profile at all. */
+function displayName(user: User) {
+  for (const key of ["full_name", "name"] as const) {
+    const value = user.user_metadata?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return user.email?.split("@")[0] ?? "Recruiter";
+}
+
+function toSessionUser(user: User): SessionUser {
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    name: displayName(user),
+  };
+}
+
+/**
+ * The verified user for this request, or null.
+ *
+ * `getUser()` costs a round trip to Supabase Auth because it validates the
+ * access token there rather than trusting the cookie, so the result is memoised
+ * for the request - a page that renders the header and reads roles pays once.
+ */
+const getSession = cache(async (): Promise<SessionUser | null> => {
+  if (isMockAuth()) return readMockSession();
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return null;
+
+  return toSessionUser(data.user);
+});
+
+/**
+ * The single authorization gate: every recruiter query takes the id this
+ * returns, since Prisma connects as the owner role and bypasses Supabase RLS.
+ * Throws so API routes answer 401 through the shared error envelope.
+ */
+async function requireUser(): Promise<SessionUser> {
+  const user = await getSession();
+  if (!user) throw new DataError("UNAUTHENTICATED");
+  return user;
+}
+
+/** Same gate for pages, which send the visitor to sign in and come back. */
 async function requirePageUser(nextPath: string): Promise<SessionUser> {
   const user = await getSession();
   if (user) return user;
-
-  const next = safeInternalPath(nextPath) ?? "/";
-  redirect(`/login?next=${encodeURIComponent(next)}`);
+  redirect(loginPath({ next: nextPath }));
 }
 
 export {
-  clearSession,
-  createSession,
   getSession,
-  MOCK_OWNER,
+  loginPath,
+  rememberNextPath,
   requirePageUser,
+  requireUser,
   safeInternalPath,
-  SESSION_COOKIE,
+  takeNextPath,
 };

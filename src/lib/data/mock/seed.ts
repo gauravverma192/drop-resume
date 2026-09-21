@@ -1,4 +1,4 @@
-import { MOCK_OWNER } from "@/lib/auth/session";
+import { MOCK_OWNER } from "@/lib/auth/mock-session";
 import { submissionFileUrl } from "@/lib/contracts/submissions";
 
 import { emptyStore, type StoredRole, type StoredSubmission, type Store } from "./store";

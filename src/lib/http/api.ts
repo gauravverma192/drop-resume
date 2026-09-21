@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { getSession } from "@/lib/auth/session";
 import type { ErrorCode, ErrorEnvelope } from "@/lib/contracts/errors";
 import { DataError, isDataError } from "@/lib/data/errors";
 
@@ -29,10 +28,4 @@ function caughtErrorResponse(error: unknown) {
   throw error;
 }
 
-async function requireApiUser() {
-  const user = await getSession();
-  if (!user) throw new DataError("UNAUTHENTICATED");
-  return user;
-}
-
-export { caughtErrorResponse, jsonError, requireApiUser, statusByCode };
+export { caughtErrorResponse, jsonError, statusByCode };

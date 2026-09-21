@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { requireUser } from "@/lib/auth/session";
 import { updateSubmissionSchema } from "@/lib/contracts/submissions";
 import { validationError } from "@/lib/contracts/errors";
 import { updateSubmissionStatus } from "@/lib/data";
-import { caughtErrorResponse, jsonError, requireApiUser } from "@/lib/http/api";
+import { caughtErrorResponse, jsonError } from "@/lib/http/api";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireApiUser();
+    const user = await requireUser();
     const { id } = await params;
     const body: unknown = await request.json();
     const parsed = updateSubmissionSchema.safeParse(body);

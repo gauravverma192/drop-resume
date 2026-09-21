@@ -1,9 +1,7 @@
 import * as React from "react";
-import Link from "next/link";
 
 import { Field } from "@/components/forms/field";
 import { SubmitButton } from "@/components/forms/submit-button";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -41,38 +39,40 @@ function GoogleMark() {
 
 function LoginForm({
   action,
+  googleAction,
   next,
-  googleHref = "/auth/callback",
   error,
   className,
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
   action: React.ComponentProps<"form">["action"];
+  /** Posts rather than links: starting OAuth writes the PKCE verifier cookie. */
+  googleAction: React.ComponentProps<"form">["action"];
   next?: string;
-  googleHref?: string;
   error?: React.ReactNode;
 }) {
   const safeNext = internalPath(next);
-  const googleUrl = safeNext
-    ? `${googleHref}?next=${encodeURIComponent(safeNext)}`
-    : googleHref;
+  const nextField = safeNext ? (
+    <input type="hidden" name="next" value={safeNext} />
+  ) : null;
 
   return (
     <div data-slot="login-form" className={cn(className)} {...props}>
       <h1 className="font-heading text-[1.375rem] font-bold tracking-[-0.04em] sm:text-2xl">
         Sign in
       </h1>
-      <Button
-        size="lg"
-        variant="outline"
-        className="mt-5 w-full bg-background"
-        asChild
-      >
-        <Link href={googleUrl}>
+      <form action={googleAction}>
+        {nextField}
+        <SubmitButton
+          size="lg"
+          variant="outline"
+          className="mt-5 w-full bg-background"
+          pendingLabel="Redirecting…"
+        >
           <GoogleMark />
           Continue with Google
-        </Link>
-      </Button>
+        </SubmitButton>
+      </form>
       <div className="relative my-[18px]">
         <Separator />
         <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs font-semibold tracking-[0.14em] text-muted-foreground">
@@ -80,7 +80,7 @@ function LoginForm({
         </span>
       </div>
       <form action={action} className="grid gap-3.5">
-        {safeNext ? <input type="hidden" name="next" value={safeNext} /> : null}
+        {nextField}
         <Field label="Email" htmlFor="email" error={error}>
           <Input
             id="email"

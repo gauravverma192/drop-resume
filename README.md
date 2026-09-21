@@ -65,11 +65,39 @@ Anything that persists needs a real project, created once from the
 `npm run db:migrate` is for authoring a _new_ migration and additionally needs
 `SHADOW_DATABASE_URL`; see the note in [.env.example](.env.example).
 
+### Turning on the two sign-in methods
+
+Both live under **Authentication** in the Supabase dashboard:
+
+1. **URL Configuration** - set the site URL and add `http://localhost:3000/auth/callback`
+   plus the deployed equivalent to the redirect allow list. Supabase rejects any
+   `redirectTo` that is not on that list.
+2. **Sign In / Providers → Google** - enable it and paste the client id and secret from
+   a Google Cloud OAuth client whose authorised redirect URI is
+   `https://<project>.supabase.co/auth/v1/callback`.
+3. **Emails → Magic Link template** - point it at the token hash rather than the default
+   confirmation URL, so the exchange happens on our server and the session lands in a
+   cookie instead of a URL fragment the server never sees:
+
+   ```
+   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Sign in</a>
+   ```
+
+   [/auth/callback](src/app/auth/callback/route.ts) also accepts the `?code=` form, so
+   an untouched template still works; it just relies on Supabase choosing the PKCE
+   variant of the link. Either way `?next=` survives, because the destination is also
+   parked in a short-lived cookie when the sign-in starts - a template cannot be
+   trusted to carry a query string.
+
 ### Running without cloud credentials
 
 The app is deliberately runnable before any account exists. Two escape hatches keep it
 that way:
 
+- **Sign-in** mints a local demo session when `NEXT_PUBLIC_SUPABASE_URL` or
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` is unset - either button signs you in as the owner of
+  the seeded roles, with no provider round trip. Development only: in production a
+  missing key makes sign-in fail closed rather than hand out a session.
 - **Turnstile** is bypassed when `TURNSTILE_SECRET_KEY` is unset, so the public form
   submits without a bot check.
 - **Resume parsing** returns fixed placeholder fields when `GEMINI_API_KEY` is unset,
@@ -108,6 +136,7 @@ src/
   components/ui/  shadcn/ui components
   generated/      Prisma client, gitignored, rebuilt on npm install
   lib/            shared helpers
+  proxy.ts        refreshes the Supabase session so cookies stay current
 ```
 
 Connection strings live in [prisma7.config.ts](prisma7.config.ts) rather than in

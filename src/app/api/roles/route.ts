@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { requireUser } from "@/lib/auth/session";
 import { createRoleSchema } from "@/lib/contracts/roles";
 import { validationError } from "@/lib/contracts/errors";
 import { createRole } from "@/lib/data";
-import { caughtErrorResponse, jsonError, requireApiUser } from "@/lib/http/api";
+import { caughtErrorResponse, jsonError } from "@/lib/http/api";
 
 export async function POST(request: Request) {
   try {
-    const user = await requireApiUser();
+    const user = await requireUser();
     const body: unknown = await request.json();
     const parsed = createRoleSchema.safeParse(body);
     if (!parsed.success) {
