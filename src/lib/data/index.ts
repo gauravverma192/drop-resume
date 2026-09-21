@@ -1,16 +1,18 @@
 export { DataError, isDataError } from "@/lib/data/errors";
 export {
-  bulkUpdateSubmissionStatus,
   createRole,
   deleteRole,
-  exportSubmissionsCsv,
   getPublicRole,
   getRole,
-  getSubmissionFile,
   listRoles,
+  updateRole,
+} from "@/lib/data/roles";
+export {
+  bulkUpdateSubmissionStatus,
+  exportSubmissionsCsv,
+  getSubmissionFile,
   listSubmissions,
   reparseSubmission,
   submitApplication,
-  updateRole,
   updateSubmissionStatus,
-} from "@/lib/data/mock/repository";
+} from "@/lib/data/submissions";

@@ -22,6 +22,7 @@ import {
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
 import { DataError } from "@/lib/data/errors";
+import { roleSlug } from "@/lib/data/slug";
 import type { SubmitApplicationParams } from "@/lib/data/types";
 
 import { createSeed } from "./seed";
@@ -42,16 +43,6 @@ async function ready() {
 
 function newId(prefix: string) {
   return `${prefix}_${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`;
-}
-
-function slugify(title: string) {
-  const base = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
-  const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 6);
-  return `${base || "role"}-${suffix}`;
 }
 
 function toPublicRole(role: StoredRole): PublicRole {
@@ -255,7 +246,7 @@ async function createRole(ownerId: string, input: CreateRoleInput): Promise<Role
     ownerId,
     title: input.title,
     companyName: input.companyName ?? null,
-    slug: slugify(input.title),
+    slug: roleSlug(input.title),
     description: input.description ?? null,
     isOpen: true,
     createdAt: new Date().toISOString(),

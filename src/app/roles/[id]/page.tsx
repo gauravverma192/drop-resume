@@ -23,6 +23,7 @@ import {
 import { getRole, isDataError, listSubmissions } from "@/lib/data";
 
 import { RoleOpenToggle } from "./role-open-toggle";
+import { RoleSettings } from "./role-settings";
 
 function hasActiveFilters(query: SubmissionQuery) {
   return Boolean(
@@ -99,6 +100,15 @@ export default async function RoleInboxPage({
                   <Download />
                 </a>
               </Button>
+              <RoleSettings
+                role={{
+                  id: role.id,
+                  title: role.title,
+                  companyName: role.companyName,
+                  description: role.description,
+                  submissionCount: role.submissionCount,
+                }}
+              />
             </>
           }
         />
