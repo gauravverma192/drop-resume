@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { Prisma } from "@/generated/prisma/client";
 
 import type {
@@ -148,6 +150,8 @@ async function deleteRole(ownerId: string, id: string): Promise<void> {
 
 /** Unscoped by design: the public form has no signed-in user. */
 async function getPublicRole(slug: string): Promise<PublicRole | null> {
+  // Closing a role must take effect on the next request, not the next deploy.
+  await connection();
   return getPrisma().role.findUnique({
     where: { slug },
     select: publicRoleSelect,

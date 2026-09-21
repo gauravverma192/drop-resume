@@ -7,11 +7,7 @@ import type {
   ApplyFormErrors,
   ApplyFormValues,
 } from "@/components/forms/apply-form";
-import {
-  duplicateEmailField,
-  errorMessages,
-  fieldErrors,
-} from "@/lib/contracts/errors";
+import { duplicateEmailField, fieldErrors } from "@/lib/contracts/errors";
 import {
   parseSubmitApplicationFields,
   submitApplicationFormFields,
@@ -22,6 +18,10 @@ type ApplyFormState = {
   errors?: ApplyFormErrors;
   values?: ApplyFormValues;
 };
+
+function formError(message: string, values: ApplyFormValues): ApplyFormState {
+  return { values, errors: { form: message } };
+}
 
 function valuesFrom(formData: FormData): ApplyFormValues {
   return {
@@ -85,11 +85,8 @@ async function submitApplicationAction(
     result = await submitApplication({ ...input, file });
   } catch (error) {
     if (isDataError(error)) {
-      if (error.code === "ROLE_CLOSED") {
-        return {
-          values,
-          errors: { candidateEmail: errorMessages.ROLE_CLOSED },
-        };
+      if (error.code === "ROLE_CLOSED" || error.code === "NOT_FOUND") {
+        return formError(error.message, values);
       }
       if (error.code === "DUPLICATE_EMAIL") {
         return {

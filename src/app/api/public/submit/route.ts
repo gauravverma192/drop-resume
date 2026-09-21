@@ -23,14 +23,15 @@ export async function POST(request: Request) {
     }
 
     const file = formData.get(submitApplicationFormFields.resume);
-    if (!(file instanceof File)) {
+    if (!(file instanceof File) || file.size === 0) {
       throw new DataError("VALIDATION_ERROR", "Attach a resume.", {
         resume: "Attach a resume.",
       });
     }
 
     const result = await submitApplication({ ...input, file });
-    return NextResponse.redirect(new URL(`/j/${result.slug}/thanks`, request.url), 303);
+    const origin = new URL(request.url).origin;
+    return NextResponse.redirect(new URL(`/j/${result.slug}/thanks`, origin), 303);
   } catch (error) {
     if (isDataError(error) && error.code === "DUPLICATE_EMAIL") {
       return jsonError(

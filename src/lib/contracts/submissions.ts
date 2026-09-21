@@ -45,8 +45,11 @@ const nullableText = z.preprocess((value: unknown) => {
 
 const submitApplicationSchema = z.object({
   slug: z.string().trim().min(1),
-  candidateName: z.string().trim().min(1),
-  candidateEmail: z.string().trim().pipe(z.email()),
+  candidateName: z.string().trim().min(1, "Enter your name."),
+  candidateEmail: z
+    .string()
+    .trim()
+    .pipe(z.email({ error: "Enter a valid email." })),
   candidatePhone: nullableText,
   turnstileToken: z.string().optional(),
 });
@@ -128,9 +131,9 @@ function stringField(formData: FormData, key: string) {
 
 function parseSubmitApplicationFields(formData: FormData) {
   return submitApplicationSchema.parse({
-    slug: stringField(formData, submitApplicationFormFields.slug),
-    candidateName: stringField(formData, submitApplicationFormFields.name),
-    candidateEmail: stringField(formData, submitApplicationFormFields.email),
+    slug: stringField(formData, submitApplicationFormFields.slug) ?? "",
+    candidateName: stringField(formData, submitApplicationFormFields.name) ?? "",
+    candidateEmail: stringField(formData, submitApplicationFormFields.email) ?? "",
     candidatePhone: stringField(formData, submitApplicationFormFields.phone),
     turnstileToken: stringField(
       formData,

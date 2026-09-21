@@ -15,7 +15,10 @@ type ApplyFormValues = {
 };
 
 type ApplyFormErrors = Partial<
-  Record<keyof ApplyFormValues | "resume" | "turnstileToken", React.ReactNode>
+  Record<
+    keyof ApplyFormValues | "resume" | "turnstileToken" | "form",
+    React.ReactNode
+  >
 >;
 
 function ApplyForm({
@@ -39,6 +42,11 @@ function ApplyForm({
       {...props}
     >
       <input type="hidden" name={submitApplicationFormFields.slug} value={slug} />
+      {errors?.form ? (
+        <p role="alert" className="text-sm font-semibold text-destructive">
+          {errors.form}
+        </p>
+      ) : null}
       <Field
         label="Full name"
         htmlFor="candidate-name"
@@ -86,7 +94,14 @@ function ApplyForm({
           required
         />
       </Field>
-      <TurnstileWidget />
+      <div className="grid gap-1.5">
+        <TurnstileWidget />
+        {errors?.turnstileToken ? (
+          <p role="alert" className="text-xs font-semibold text-destructive">
+            {errors.turnstileToken}
+          </p>
+        ) : null}
+      </div>
       <SubmitButton size="lg" className="mt-1 w-full" pendingLabel="Submitting…">
         Submit application
       </SubmitButton>

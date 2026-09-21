@@ -12,9 +12,7 @@ import type {
   UpdateRoleInput,
 } from "@/lib/contracts/roles";
 import {
-  ACCEPTED_RESUME_MIME_TYPES,
   displayStatus,
-  MAX_RESUME_BYTES,
   submissionFileUrl,
   whereForDisplayStatus,
   type ReviewStatus,
@@ -22,6 +20,13 @@ import {
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
 import { DataError } from "@/lib/data/errors";
+import { createId } from "@/lib/data/ids";
+import {
+  assertBotCheck,
+  normalizeCandidateEmail,
+  readResumeFile,
+  resumeStoragePath,
+} from "@/lib/data/resume-file";
 import { roleSlug } from "@/lib/data/slug";
 import type { SubmitApplicationParams } from "@/lib/data/types";
 
@@ -187,37 +192,6 @@ function queryRows(roleId: string, query: SubmissionQuery) {
   return rows;
 }
 
-function sniffMime(bytes: Uint8Array) {
-  if (
-    bytes.length >= 4 &&
-    bytes[0] === 0x25 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x44 &&
-    bytes[3] === 0x46
-  ) {
-    return "application/pdf";
-  }
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return "image/jpeg";
-  }
-  if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  ) {
-    return "image/png";
-  }
-  return null;
-}
-
-function extensionFor(mime: string) {
-  if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/png") return "png";
-  return "pdf";
-}
-
 function csvCell(value: string) {
   if (/[",\n\r]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
@@ -367,37 +341,17 @@ async function submitApplication(input: SubmitApplicationParams) {
   if (!role) throw new DataError("NOT_FOUND");
   if (!role.isOpen) throw new DataError("ROLE_CLOSED");
 
-  if (process.env.TURNSTILE_SECRET_KEY && !input.turnstileToken) {
-    throw new DataError("TURNSTILE_FAILED");
-  }
+  assertBotCheck(input.turnstileToken);
 
-  if (!(input.file instanceof File) || input.file.size === 0) {
-    throw new DataError("VALIDATION_ERROR", "Attach a resume.", {
-      resume: "Attach a resume.",
-    });
-  }
-  if (input.file.size > MAX_RESUME_BYTES) {
-    throw new DataError("FILE_TOO_LARGE");
-  }
-
-  const bytes = new Uint8Array(await input.file.arrayBuffer());
-  const mime = sniffMime(bytes);
-  if (
-    !mime ||
-    !(ACCEPTED_RESUME_MIME_TYPES as readonly string[]).includes(mime)
-  ) {
-    throw new DataError("FILE_TYPE_REJECTED");
-  }
-
-  const email = input.candidateEmail.toLowerCase();
+  const resume = await readResumeFile(input.file);
+  const email = normalizeCandidateEmail(input.candidateEmail);
   for (const row of db.submissions.values()) {
-    if (row.roleId === role.id && row.candidateEmail.toLowerCase() === email) {
+    if (row.roleId === role.id && row.candidateEmail === email) {
       throw new DataError("DUPLICATE_EMAIL");
     }
   }
 
-  const id = newId("sub");
-  const ext = extensionFor(mime);
+  const id = createId();
   const row: StoredSubmission = {
     id,
     roleId: role.id,
@@ -417,13 +371,13 @@ async function submitApplication(input: SubmitApplicationParams) {
     parseStatus: "pending",
     createdAt: new Date().toISOString(),
     fileUrl: submissionFileUrl(id),
-    storagePath: `resumes/${role.id}/${id}.${ext}`,
-    fileName: input.file.name || `resume.${ext}`,
-    fileMime: mime,
-    fileSize: bytes.byteLength,
+    storagePath: resumeStoragePath(role.id, id, resume.ext),
+    fileName: resume.fileName,
+    fileMime: resume.mime,
+    fileSize: resume.fileSize,
     parseError: null,
     rawText: null,
-    bytes,
+    bytes: resume.bytes,
   };
   db.submissions.set(id, row);
 
