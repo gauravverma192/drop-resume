@@ -1,0 +1,96 @@
+// DropResume schema. Supabase Auth owns `auth.users`; `Role.ownerId` is that user
+// id as a plain string, so nothing here manages passwords or sessions.
+// Connection strings live in `prisma7.config.ts`, not in this file (Prisma 7).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  ownerId     String
+  title       String
+  companyName String?
+  slug        String   @unique
+  description String?
+  isOpen      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  submissions Submission[]
+
+  @@index([ownerId])
+}
+
+model Submission {
+  /// Always supplied explicitly: the storage path embeds the id, and the upload
+  /// happens before the insert. The default is only a safety net.
+  id     String @id @default(cuid())
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  // What the candidate typed.
+  candidateName  String
+  candidateEmail String
+  candidatePhone String?
+
+  // The stored file, inside the private Supabase bucket.
+  storagePath String
+  fileName    String
+  fileMime    String
+  fileSize    Int
+
+  // Recruiter workflow.
+  status ReviewStatus @default(PENDING)
+
+  // Gemini output. `rawText` is kept so re-scoring never costs a second API call.
+  parseStatus      ParseStatus @default(PENDING)
+  parseError       String?
+  rawText          String?     @db.Text
+  aiSummary        String?
+  matchScore       Int?
+  matchScoreReason String?
+  parsedName       String?
+  parsedEmail      String?
+  parsedPhone      String?
+  currentTitle     String?
+  currentCompany   String?
+  yearsExperience  Float?
+  highlySkilledAt  String?
+  location         String?
+  skills           String[]
+  education        Json?
+
+  createdAt DateTime @default(now())
+
+  /// Duplicate rejection stays correct under concurrent submissions because the
+  /// app catches the P2002 violation rather than trusting a read-then-write check.
+  @@unique([roleId, candidateEmail])
+  @@index([roleId, status])
+}
+
+/// One row per public submit attempt, counted for the per-IP rate limit.
+model SubmitAttempt {
+  id        String   @id @default(cuid())
+  /// sha256(ip + APP_SALT). The raw IP is never stored.
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+}
+
+enum ReviewStatus {
+  PENDING
+  SHORTLISTED
+  REJECTED
+}
+
+enum ParseStatus {
+  PENDING
+  DONE
+  FAILED
+}

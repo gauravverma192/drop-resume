@@ -38,7 +38,8 @@ and the build order.
 
 ## Running it
 
-Requires Node `>=20.9.0` (Next.js 16's floor) and npm.
+Requires Node `>=20.19.0` - Prisma 7's floor, which is higher than Next.js 16's. There
+is an `.nvmrc`, so `nvm use` picks the right one.
 
 ```bash
 npm install
@@ -47,6 +48,22 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+### Connecting a Supabase project
+
+Anything that persists needs a real project, created once from the
+[Supabase dashboard](https://supabase.com/dashboard):
+
+1. Create the project, then copy the API URL and keys from **Project Settings → API**
+   and both connection strings from **Project Settings → Database** into `.env.local`.
+2. `npm run db:deploy` - applies [prisma/migrations](prisma/migrations) over
+   `DIRECT_URL`. The port-6543 pooler cannot run DDL, which is why migrations use a
+   separate connection string from the app.
+3. `npm run setup:storage` - creates the private `resumes` bucket and fails loudly if
+   the bucket turns out to be public.
+
+`npm run db:migrate` is for authoring a _new_ migration and additionally needs
+`SHADOW_DATABASE_URL`; see the note in [.env.example](.env.example).
 
 ### Running without cloud credentials
 
@@ -63,24 +80,38 @@ fill in `DATABASE_URL`, `DIRECT_URL`, and the Supabase keys before you expect a
 submission to persist. Every variable and where to find it is documented in
 [.env.example](.env.example).
 
+Until then the dashboard reads from an in-memory store seeded with sample roles, so the
+UI is browsable but nothing survives a restart.
+
 ## Scripts
 
-| Command             | Does                                        |
-| ------------------- | ------------------------------------------- |
-| `npm run dev`       | Dev server on port 3000                     |
-| `npm run build`     | Production build                            |
-| `npm start`         | Serve the production build                  |
-| `npm run lint`      | ESLint                                      |
-| `npm run typecheck` | `tsc --noEmit`                              |
+| Command                 | Does                                              |
+| ----------------------- | ------------------------------------------------- |
+| `npm run dev`           | Dev server on port 3000                           |
+| `npm run build`         | Production build                                  |
+| `npm start`             | Serve the production build                        |
+| `npm run lint`          | ESLint                                            |
+| `npm run typecheck`     | `tsc --noEmit`                                    |
+| `npm run db:deploy`     | Apply existing migrations over `DIRECT_URL`       |
+| `npm run db:migrate`    | Author a new migration from schema changes        |
+| `npm run db:studio`     | Prisma Studio                                     |
+| `npm run setup:storage` | Create the private `resumes` bucket               |
 
 ## Layout
 
 ```
+prisma/
+  schema.prisma   Role, Submission, SubmitAttempt
+  migrations/     checked in; applied with npm run db:deploy
 src/
   app/            routes - dashboard at /, /login, /roles/*, /j/[slug], /api/*
   components/ui/  shadcn/ui components
+  generated/      Prisma client, gitignored, rebuilt on npm install
   lib/            shared helpers
 ```
+
+Connection strings live in [prisma7.config.ts](prisma7.config.ts) rather than in
+`schema.prisma`; Prisma 7 moved them there and dropped the schema's `directUrl`.
 
 ## Things worth knowing
 
