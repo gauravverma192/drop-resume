@@ -2,7 +2,9 @@
 // safe to re-run against an existing project: `npm run setup:storage`.
 //
 // Plain .mjs rather than TypeScript so it runs on bare node with no build step.
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
+
+const { loadEnvConfig } = nextEnv;
 
 loadEnvConfig(process.cwd(), true);
 
