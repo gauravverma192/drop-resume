@@ -90,7 +90,9 @@ function RelativeTime({
           {formatRelativeTime(value, now == null ? new Date() : new Date(now))}
         </time>
       </TooltipTrigger>
-      <TooltipContent>{formatTimestamp(value)}</TooltipContent>
+      <TooltipContent>
+        <span suppressHydrationWarning>{formatTimestamp(value)}</span>
+      </TooltipContent>
     </Tooltip>
   );
 }

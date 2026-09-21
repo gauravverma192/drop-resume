@@ -1,0 +1,132 @@
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { Download } from "lucide-react";
+
+import { signOut } from "@/app/actions/auth";
+import { FilterToolbar } from "@/components/candidates/filter-toolbar";
+import { InboxView } from "@/components/candidates/inbox-view";
+import { PaginationControls } from "@/components/candidates/pagination-controls";
+import { BackButton } from "@/components/chrome/back-button";
+import { PageContainer } from "@/components/chrome/page-container";
+import { PageHeader } from "@/components/chrome/page-header";
+import { SiteHeader } from "@/components/chrome/site-header";
+import { CopyLinkButton } from "@/components/display/copy-link-button";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { Button } from "@/components/ui/button";
+import { appUrl, roleShareUrl } from "@/lib/app-url";
+import { requirePageUser } from "@/lib/auth/session";
+import {
+  parseSubmissionQuery,
+  type SearchParamsRecord,
+  type SubmissionQuery,
+} from "@/lib/contracts/query";
+import { getRole, isDataError, listSubmissions } from "@/lib/data";
+
+import { RoleOpenToggle } from "./role-open-toggle";
+
+function hasActiveFilters(query: SubmissionQuery) {
+  return Boolean(
+    query.q ||
+      query.status ||
+      query.minYears != null ||
+      query.minScore != null ||
+      query.skill
+  );
+}
+
+function searchParamsToQuery(searchParams: SearchParamsRecord) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string" && value.length > 0) {
+      params.set(key, value);
+    }
+  }
+  return params.toString();
+}
+
+export async function generateMetadata({ params }: PageProps<"/roles/[id]">) {
+  const { id } = await params;
+  const user = await requirePageUser(`/roles/${id}`);
+  const role = await getRole(user.id, id);
+  return { title: role ? `${role.title} · DropResume` : "DropResume" };
+}
+
+export default async function RoleInboxPage({
+  params,
+  searchParams,
+}: PageProps<"/roles/[id]">) {
+  const { id } = await params;
+  const rawSearch = await searchParams;
+  const user = await requirePageUser(`/roles/${id}`);
+  const query = parseSubmissionQuery(rawSearch);
+
+  let role;
+  let list;
+  try {
+    role = await getRole(user.id, id);
+    if (!role) notFound();
+    list = await listSubmissions(user.id, id, query);
+  } catch (error) {
+    if (isDataError(error) && error.code === "NOT_FOUND") notFound();
+    throw error;
+  }
+
+  const origin = await appUrl();
+  const exportQuery = searchParamsToQuery(rawSearch);
+  const exportHref = exportQuery
+    ? `/api/roles/${role.id}/export?${exportQuery}`
+    : `/api/roles/${role.id}/export`;
+  const countLabel = `${role.submissionCount} ${
+    role.submissionCount === 1 ? "submission" : "submissions"
+  }`;
+
+  return (
+    <>
+      <SiteHeader variant="signed-in" user={user} signOutAction={signOut} />
+      <PageContainer>
+        <BackButton href="/" />
+        <PageHeader
+          title={role.title}
+          description={
+            role.companyName ? `${role.companyName} · ${countLabel}` : countLabel
+          }
+          actions={
+            <>
+              <RoleOpenToggle roleId={role.id} isOpen={role.isOpen} />
+              <CopyLinkButton value={roleShareUrl(origin, role.slug)} />
+              <Button variant="outline" size="icon" asChild>
+                <a href={exportHref} aria-label="Export CSV">
+                  <Download />
+                </a>
+              </Button>
+            </>
+          }
+        />
+        <Suspense>
+          <FilterToolbar />
+        </Suspense>
+        <InboxView
+          submissions={list.items}
+          now={new Date().toISOString()}
+          empty={
+            <EmptyState
+              title={
+                hasActiveFilters(query)
+                  ? "No matching candidates"
+                  : "No submissions yet"
+              }
+              description={
+                hasActiveFilters(query)
+                  ? "Try a wider filter, or clear search to see everyone."
+                  : "Share the role link and candidates will land here."
+              }
+            />
+          }
+        />
+        <Suspense>
+          <PaginationControls page={list.page} pageCount={list.pageCount} />
+        </Suspense>
+      </PageContainer>
+    </>
+  );
+}

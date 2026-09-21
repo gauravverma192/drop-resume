@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.dirname(new URL(import.meta.url).pathname),
   },
+  experimental: {
+    serverActions: {
+      // Resume uploads are capped at 2 MB; leave room for multipart overhead.
+      bodySizeLimit: "3mb",
+    },
+  },
 };
 
 export default nextConfig;
