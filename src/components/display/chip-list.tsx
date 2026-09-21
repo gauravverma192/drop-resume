@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Chip } from "@/components/chip";
+import { Chip } from "@/components/display/chip";
 import {
   Tooltip,
   TooltipContent,

@@ -2,9 +2,8 @@
 
 import * as React from "react";
 
-import type { Candidate } from "@/components/candidate";
-import { ChipList } from "@/components/chip-list";
-import { Score } from "@/components/score";
+import { ChipList } from "@/components/display/chip-list";
+import { Score } from "@/components/display/score";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { SubmissionListItem } from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
 function DetailRow({
@@ -31,7 +31,7 @@ function DetailRow({
 }
 
 function CandidateDrawer({
-  candidate,
+  submission,
   open,
   onOpenChange,
   onShortlist,
@@ -40,18 +40,21 @@ function CandidateDrawer({
   className,
   ...props
 }: Omit<React.ComponentProps<typeof SheetContent>, "children"> & {
-  candidate: Candidate | null | undefined;
+  submission: SubmissionListItem | null | undefined;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onShortlist?: (candidate: Candidate) => void;
-  onReject?: (candidate: Candidate) => void;
+  onShortlist?: (submission: SubmissionListItem) => void;
+  onReject?: (submission: SubmissionListItem) => void;
   disabled?: boolean;
 }) {
-  if (!candidate) {
+  if (!submission) {
     return null;
   }
 
-  const contact = [candidate.email, candidate.phone].filter(Boolean).join(" · ");
+  const contact = [submission.candidateEmail, submission.candidatePhone]
+    .filter(Boolean)
+    .join(" · ");
+  const years = submission.yearsExperience;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -65,7 +68,7 @@ function CandidateDrawer({
       >
         <SheetHeader className="p-0 pr-9">
           <SheetTitle className="font-heading text-lg font-bold tracking-[-0.03em]">
-            {candidate.name}
+            {submission.candidateName}
           </SheetTitle>
           {contact ? <SheetDescription>{contact}</SheetDescription> : null}
         </SheetHeader>
@@ -76,7 +79,7 @@ function CandidateDrawer({
             variant="success"
             size="sm"
             disabled={disabled}
-            onClick={() => onShortlist?.(candidate)}
+            onClick={() => onShortlist?.(submission)}
           >
             Shortlist
           </Button>
@@ -85,57 +88,55 @@ function CandidateDrawer({
             variant="destructive"
             size="sm"
             disabled={disabled}
-            onClick={() => onReject?.(candidate)}
+            onClick={() => onReject?.(submission)}
           >
             Reject
           </Button>
-          {candidate.resumeUrl ? (
-            <Button variant="outline" size="sm" asChild>
-              <a href={candidate.resumeUrl} target="_blank" rel="noreferrer">
-                Open resume
-              </a>
-            </Button>
-          ) : null}
+          <Button variant="outline" size="sm" asChild>
+            <a href={submission.fileUrl} target="_blank" rel="noreferrer">
+              Open resume
+            </a>
+          </Button>
         </div>
 
-        {candidate.summary ? (
+        {submission.aiSummary ? (
           <p className="mt-4 rounded-lg border border-accent-line bg-accent-subtle px-3.5 py-3 text-foreground-2">
-            {candidate.summary}
+            {submission.aiSummary}
           </p>
         ) : null}
 
         <dl className="my-4 grid grid-cols-[92px_1fr] items-baseline gap-x-3 gap-y-2 text-[0.8125rem]">
-          {candidate.title ? (
-            <DetailRow label="Title">{candidate.title}</DetailRow>
+          {submission.currentTitle ? (
+            <DetailRow label="Title">{submission.currentTitle}</DetailRow>
           ) : null}
-          {candidate.company ? (
-            <DetailRow label="Company">{candidate.company}</DetailRow>
+          {submission.currentCompany ? (
+            <DetailRow label="Company">{submission.currentCompany}</DetailRow>
           ) : null}
-          {candidate.years == null ? null : (
+          {years == null ? null : (
             <DetailRow label="Experience">
-              {candidate.years} {candidate.years === 1 ? "year" : "years"}
+              {years} {years === 1 ? "year" : "years"}
             </DetailRow>
           )}
-          {candidate.focusAreas?.length ? (
+          {submission.highlySkilledAt ? (
             <DetailRow label="Focus">
-              <ChipList items={candidate.focusAreas} />
+              <ChipList items={[submission.highlySkilledAt]} />
             </DetailRow>
           ) : null}
-          {candidate.location ? (
-            <DetailRow label="Location">{candidate.location}</DetailRow>
+          {submission.location ? (
+            <DetailRow label="Location">{submission.location}</DetailRow>
           ) : null}
-          {candidate.score == null ? null : (
+          {submission.matchScore == null ? null : (
             <DetailRow label="Score">
               <Score
-                value={candidate.score}
-                reason={candidate.scoreReason}
+                value={submission.matchScore}
+                reason={submission.matchScoreReason}
                 showTotal
               />
             </DetailRow>
           )}
-          {candidate.skills?.length ? (
+          {submission.skills.length ? (
             <DetailRow label="Skills">
-              <ChipList items={candidate.skills} />
+              <ChipList items={submission.skills} />
             </DetailRow>
           ) : null}
         </dl>

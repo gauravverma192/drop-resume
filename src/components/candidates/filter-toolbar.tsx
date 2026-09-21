@@ -3,10 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import {
-  submissionStatusLabels,
-  type SubmissionStatus,
-} from "@/components/status-badge";
+import { submissionStatusLabels } from "@/components/display/status-badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { filterParams } from "@/lib/contracts/query";
+import { displayStatuses, type DisplayStatus } from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
 const ALL_STATUSES = "all";
@@ -76,12 +74,12 @@ function DebouncedInput({
 }
 
 function FilterToolbar({
-  statuses = Object.keys(submissionStatusLabels) as SubmissionStatus[],
+  statuses = displayStatuses,
   searchPlaceholder = "Search name, title, company…",
   className,
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
-  statuses?: readonly SubmissionStatus[];
+  statuses?: readonly DisplayStatus[];
   searchPlaceholder?: string;
 }) {
   const router = useRouter();

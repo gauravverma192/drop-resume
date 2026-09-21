@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { BrandDroplet } from "@/components/brand-mark";
+import { BrandDroplet } from "@/components/chrome/brand-mark";
 import { cn } from "@/lib/utils";
 
 function EmptyState({

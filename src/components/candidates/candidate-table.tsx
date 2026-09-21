@@ -2,11 +2,11 @@
 
 import * as React from "react";
 
-import { isCandidateParsed, type Candidate } from "@/components/candidate";
-import { ChipList } from "@/components/chip-list";
-import { RelativeTime } from "@/components/relative-time";
-import { Score } from "@/components/score";
-import { StatusBadge } from "@/components/status-badge";
+import { ChipList } from "@/components/display/chip-list";
+import { RelativeTime } from "@/components/display/relative-time";
+import { Score } from "@/components/display/score";
+import { StatusBadge } from "@/components/display/status-badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -21,6 +21,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  displayStatus,
+  type SubmissionListItem,
+} from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
 const SCORE_HINT =
@@ -37,21 +41,29 @@ function value(content: React.ReactNode) {
   return content == null || content === "" ? <Empty /> : content;
 }
 
+function isOpenable(submission: SubmissionListItem) {
+  return submission.parseStatus === "done";
+}
+
 function CandidateTable({
-  candidates,
+  submissions,
   selectedIds,
   onSelectedIdsChange,
-  onOpenCandidate,
+  onOpenSubmission,
+  onRetryParse,
+  retryingId,
   now,
   empty,
   className,
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
-  candidates: readonly Candidate[];
+  submissions: readonly SubmissionListItem[];
   selectedIds?: readonly string[];
   /** Omit to drop the selection column entirely. */
   onSelectedIdsChange?: (ids: string[]) => void;
-  onOpenCandidate?: (candidate: Candidate) => void;
+  onOpenSubmission?: (submission: SubmissionListItem) => void;
+  onRetryParse?: (submission: SubmissionListItem) => void;
+  retryingId?: string | null;
   now?: Date | string | number;
   empty?: React.ReactNode;
 }) {
@@ -61,21 +73,24 @@ function CandidateTable({
     [selectedIds]
   );
 
-  const allSelected = candidates.length > 0 && selected.size >= candidates.length;
+  const allSelected =
+    submissions.length > 0 && submissions.every((item) => selected.has(item.id));
   const someSelected = selected.size > 0 && !allSelected;
 
   function toggleAll(checked: boolean) {
-    onSelectedIdsChange?.(checked ? candidates.map((it) => it.id) : []);
+    onSelectedIdsChange?.(checked ? submissions.map((it) => it.id) : []);
   }
 
-  function toggleOne(candidate: Candidate, checked: boolean) {
+  function toggleOne(submission: SubmissionListItem, checked: boolean) {
     const next = new Set(selected);
     if (checked) {
-      next.add(candidate.id);
+      next.add(submission.id);
     } else {
-      next.delete(candidate.id);
+      next.delete(submission.id);
     }
-    onSelectedIdsChange?.(candidates.filter((it) => next.has(it.id)).map((it) => it.id));
+    onSelectedIdsChange?.(
+      submissions.filter((it) => next.has(it.id)).map((it) => it.id)
+    );
   }
 
   return (
@@ -126,7 +141,7 @@ function CandidateTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {candidates.length === 0 ? (
+          {submissions.length === 0 ? (
             <TableRow className="hover:bg-transparent">
               <TableCell
                 colSpan={selectable ? DATA_COLUMN_COUNT + 1 : DATA_COLUMN_COUNT}
@@ -136,16 +151,20 @@ function CandidateTable({
               </TableCell>
             </TableRow>
           ) : null}
-          {candidates.map((candidate) => {
-            const openable = onOpenCandidate != null && isCandidateParsed(candidate);
-            const isSelected = selected.has(candidate.id);
+          {submissions.map((submission) => {
+            const openable = onOpenSubmission != null && isOpenable(submission);
+            const isSelected = selected.has(submission.id);
+            const badge = displayStatus(submission);
+            const focus = submission.highlySkilledAt
+              ? [submission.highlySkilledAt]
+              : [];
 
             return (
               <TableRow
-                key={candidate.id}
+                key={submission.id}
                 data-state={isSelected ? "selected" : undefined}
                 className={cn(openable && "cursor-pointer")}
-                onClick={openable ? () => onOpenCandidate(candidate) : undefined}
+                onClick={openable ? () => onOpenSubmission(submission) : undefined}
               >
                 {selectable ? (
                   <TableCell
@@ -155,8 +174,10 @@ function CandidateTable({
                   >
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={(checked) => toggleOne(candidate, checked === true)}
-                      aria-label={`Select ${candidate.name}`}
+                      onCheckedChange={(checked) =>
+                        toggleOne(submission, checked === true)
+                      }
+                      aria-label={`Select ${submission.candidateName}`}
                     />
                   </TableCell>
                 ) : null}
@@ -167,41 +188,57 @@ function CandidateTable({
                       className="font-semibold outline-none focus-visible:underline"
                       onClick={(event) => {
                         event.stopPropagation();
-                        onOpenCandidate(candidate);
+                        onOpenSubmission(submission);
                       }}
                     >
-                      {candidate.name}
+                      {submission.candidateName}
                     </button>
                   ) : (
-                    <span className="font-semibold">{candidate.name}</span>
+                    <span className="font-semibold">{submission.candidateName}</span>
                   )}
-                  <div className="text-muted-foreground">{candidate.email}</div>
+                  <div className="text-muted-foreground">
+                    {submission.candidateEmail}
+                  </div>
+                  {badge === "failed" && onRetryParse ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="xs"
+                      className="mt-1.5"
+                      disabled={retryingId === submission.id}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRetryParse(submission);
+                      }}
+                    >
+                      Retry parse
+                    </Button>
+                  ) : null}
                 </TableCell>
-                <TableCell>{value(candidate.title)}</TableCell>
-                <TableCell>{value(candidate.company)}</TableCell>
-                <TableCell>{value(candidate.years)}</TableCell>
+                <TableCell>{value(submission.currentTitle)}</TableCell>
+                <TableCell>{value(submission.currentCompany)}</TableCell>
+                <TableCell>{value(submission.yearsExperience)}</TableCell>
                 <TableCell>
-                  {candidate.skills?.length ? (
-                    <ChipList items={candidate.skills} max={3} />
+                  {submission.skills.length ? (
+                    <ChipList items={submission.skills} max={3} />
                   ) : (
                     <Empty />
                   )}
                 </TableCell>
                 <TableCell>
-                  {candidate.focusAreas?.length ? (
-                    <ChipList items={candidate.focusAreas} max={2} />
-                  ) : (
-                    <Empty />
-                  )}
+                  {focus.length ? <ChipList items={focus} max={2} /> : <Empty />}
                 </TableCell>
                 <TableCell>
-                  <Score value={candidate.score} reason={candidate.scoreReason} />
+                  <Score
+                    value={submission.matchScore}
+                    reason={submission.matchScoreReason}
+                  />
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={candidate.status} />
+                  <StatusBadge status={badge} />
                 </TableCell>
                 <TableCell>
-                  <RelativeTime date={candidate.submittedAt} now={now} />
+                  <RelativeTime date={submission.createdAt} now={now} />
                 </TableCell>
               </TableRow>
             );

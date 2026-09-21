@@ -4,10 +4,13 @@ import * as React from "react";
 import { Paperclip, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  ACCEPTED_RESUME_MIME_TYPES,
+  MAX_RESUME_BYTES,
+} from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
-const MAX_BYTES = 2 * 1024 * 1024;
-const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+const ACCEPTED_TYPES: readonly string[] = ACCEPTED_RESUME_MIME_TYPES;
 const ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
 const ACCEPTED_EXTENSIONS = /\.(pdf|jpe?g|png)$/i;
 const TEXT_DOCUMENT = /\.(docx?|rtf|odt|pages|txt)$/i;
@@ -39,7 +42,7 @@ function rejectionReason(file: File, maxBytes: number) {
 function ResumeDropzone({
   id,
   name = "resume",
-  maxBytes = MAX_BYTES,
+  maxBytes = MAX_RESUME_BYTES,
   required,
   disabled,
   onFileChange,
@@ -171,4 +174,4 @@ function ResumeDropzone({
   );
 }
 
-export { ResumeDropzone, MAX_BYTES as MAX_RESUME_BYTES };
+export { ResumeDropzone, MAX_RESUME_BYTES };

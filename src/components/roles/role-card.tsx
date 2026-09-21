@@ -1,8 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 
-import { CopyLinkButton } from "@/components/copy-link-button";
-import { StatusBadge, type RoleState } from "@/components/status-badge";
+import { CopyLinkButton } from "@/components/display/copy-link-button";
+import { StatusBadge, type RoleState } from "@/components/display/status-badge";
 import { cn } from "@/lib/utils";
 
 function RoleCard({

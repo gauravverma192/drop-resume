@@ -1,7 +1,7 @@
 import * as React from "react";
 import type Link from "next/link";
 
-import { BrandMark } from "@/components/brand-mark";
+import { BrandMark } from "@/components/chrome/brand-mark";
 import { cn } from "@/lib/utils";
 
 function AppHeader({
