@@ -15,19 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { filterParams } from "@/lib/contracts/query";
 import { cn } from "@/lib/utils";
 
 const ALL_STATUSES = "all";
 const COMMIT_DELAY = 300;
-
-/** The keys `buildSubmissionWhere(searchParams)` reads. */
-const filterParams = {
-  query: "q",
-  status: "status",
-  minYears: "minYears",
-  minScore: "minScore",
-  skill: "skill",
-} as const;
 
 function DebouncedInput({
   value,
@@ -193,4 +185,4 @@ function FilterToolbar({
   );
 }
 
-export { FilterToolbar, filterParams };
+export { FilterToolbar };
