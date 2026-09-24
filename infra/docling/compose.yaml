@@ -1,0 +1,20 @@
+services:
+  docling:
+    image: quay.io/docling-project/docling-serve-cpu:v1.34.0
+    platform: linux/arm64
+    restart: unless-stopped
+    expose:
+      - "5001"
+    environment:
+      DOCLING_SERVE_API_KEY: ${DOCLING_SERVE_API_KEY}
+      DOCLING_NUM_THREADS: "2"
+      DOCLING_SERVE_ENABLE_UI: "0"
+      DOCLING_SERVE_LOG_FORMAT: json
+      DOCLING_SERVE_ENABLE_MANAGEMENT_ENDPOINTS: "true"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      - docling

@@ -11,8 +11,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_TYPES: readonly string[] = ACCEPTED_RESUME_MIME_TYPES;
-const ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
-const ACCEPTED_EXTENSIONS = /\.(pdf|jpe?g|png)$/i;
+const ACCEPT = ".pdf,application/pdf";
+const ACCEPTED_EXTENSIONS = /\.pdf$/i;
 const TEXT_DOCUMENT = /\.(docx?|rtf|odt|pages|txt)$/i;
 
 function formatSize(bytes: number) {
@@ -31,7 +31,7 @@ function rejectionReason(file: File, maxBytes: number) {
   if (!accepted) {
     return TEXT_DOCUMENT.test(file.name)
       ? "Word and text files can't be read. Export a PDF instead."
-      : "PDF, JPG, and PNG only. Export a PDF instead.";
+      : "PDF only. Export a PDF instead.";
   }
   if (file.size > maxBytes) {
     return `That file is ${formatSize(file.size)}. The limit is ${formatSize(maxBytes)}.`;
@@ -153,7 +153,7 @@ function ResumeDropzone({
         ) : (
           <>
             <strong className="text-primary-deep">
-              Drop a PDF, JPG, or PNG
+              Drop a PDF
             </strong>
             Max {formatSize(maxBytes)}.
           </>

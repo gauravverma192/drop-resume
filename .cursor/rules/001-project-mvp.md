@@ -246,7 +246,7 @@ happen before any AI call.
 
 ## 6. Gemini parsing
 
-One call per resume. PDFs and images are sent to Gemini as inline file data. The prompt
+One call per resume. PDFs are sent to Gemini as inline file data. The prompt
 asks for strict JSON matching a schema, using Gemini's structured-output mode so we are
 not regex-parsing prose.
 
@@ -266,10 +266,9 @@ thousand submissions a month stays in the low single-digit dollars.
 
 ## 7. File handling
 
-- Accepted: **PDF, JPG, PNG only.** DOC and DOCX are rejected with a message telling the
-  candidate to export a PDF. Gemini cannot read a `.docx` binary the way it reads PDFs
-  and images, and supporting it would mean a second text-extraction path for one file
-  type, so there is exactly one parse path instead.
+- Accepted: **PDF only.** DOC and DOCX are rejected with a message telling the
+  candidate to export a PDF. Supporting `.docx` would mean a second text-extraction
+  path for one file type, so there is exactly one parse path instead.
 - Max size: 2 MB, enforced client-side for a fast error and server-side for real. This
   sits well under Vercel's 4.5 MB request body limit. Phone photos of a resume often
   exceed 2 MB, so the error copy should push people toward a PDF.

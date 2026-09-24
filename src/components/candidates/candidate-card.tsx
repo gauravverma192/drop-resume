@@ -7,18 +7,17 @@ import { formatRelativeTime } from "@/components/display/relative-time";
 import { Score } from "@/components/display/score";
 import { StatusBadge } from "@/components/display/status-badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   displayStatus,
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
-function isOpenable(submission: SubmissionListItem) {
-  return submission.parseStatus === "done";
-}
-
 function CandidateCard({
   submission,
+  selected,
+  onSelectedChange,
   onOpenSubmission,
   onRetryParse,
   retrying,
@@ -27,13 +26,15 @@ function CandidateCard({
   ...props
 }: Omit<React.ComponentProps<"div">, "children" | "onClick"> & {
   submission: SubmissionListItem;
+  selected?: boolean;
+  onSelectedChange?: (checked: boolean) => void;
   onOpenSubmission?: (submission: SubmissionListItem) => void;
   onRetryParse?: (submission: SubmissionListItem) => void;
   retrying?: boolean;
   now?: Date | string | number;
 }) {
   const badge = displayStatus(submission);
-  const parsed = isOpenable(submission);
+  const parsed = submission.parseStatus === "done";
   const submitted = new Date(submission.createdAt);
   // The table pairs the relative label with a tooltip; a tap target can't hold
   // nested focusable text, so the card shows it plain.
@@ -48,15 +49,80 @@ function CandidateCard({
     </time>
   );
 
-  const openable = parsed && onOpenSubmission != null;
-  const shellClassName = cn(
-    "w-full rounded-lg border border-border bg-card p-3.5 text-left outline-none transition-colors min-[860px]:hidden",
-    openable &&
-      "cursor-pointer hover:border-accent-line focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-    className
-  );
+  const openable = onOpenSubmission != null;
 
-  const body = (
+  return (
+    <div
+      data-slot="candidate-card"
+      className={cn(
+        "flex w-full gap-2.5 rounded-lg border border-border bg-card p-3.5 text-left min-[860px]:hidden",
+        className
+      )}
+      {...props}
+    >
+      {onSelectedChange ? (
+        <div className="pt-0.5">
+          <Checkbox
+            checked={selected === true}
+            onCheckedChange={(checked) => onSelectedChange(checked === true)}
+            aria-label={`Select ${submission.candidateName}`}
+          />
+        </div>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        {openable ? (
+          <button
+            type="button"
+            onClick={() => onOpenSubmission(submission)}
+            className="w-full text-left outline-none transition-colors hover:text-foreground focus-visible:underline"
+          >
+            <CardBody
+              submission={submission}
+              badge={badge}
+              parsed={parsed}
+              submittedLabel={submittedLabel}
+            />
+          </button>
+        ) : (
+          <CardBody
+            submission={submission}
+            badge={badge}
+            parsed={parsed}
+            submittedLabel={submittedLabel}
+          />
+        )}
+        {badge === "failed" && onRetryParse ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            disabled={retrying}
+            onClick={(event) => {
+              event.stopPropagation();
+              onRetryParse(submission);
+            }}
+          >
+            Retry parse
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CardBody({
+  submission,
+  badge,
+  parsed,
+  submittedLabel,
+}: {
+  submission: SubmissionListItem;
+  badge: ReturnType<typeof displayStatus>;
+  parsed: boolean;
+  submittedLabel: React.ReactNode;
+}) {
+  return (
     <>
       <div className="flex items-start justify-between gap-2">
         <strong className="font-semibold">{submission.candidateName}</strong>
@@ -89,41 +155,7 @@ function CandidateCard({
           {submittedLabel}
         </div>
       ) : null}
-      {badge === "failed" && onRetryParse ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mt-2"
-          disabled={retrying}
-          onClick={(event) => {
-            event.stopPropagation();
-            onRetryParse(submission);
-          }}
-        >
-          Retry parse
-        </Button>
-      ) : null}
     </>
-  );
-
-  if (openable) {
-    return (
-      <button
-        type="button"
-        data-slot="candidate-card"
-        onClick={() => onOpenSubmission(submission)}
-        className={shellClassName}
-      >
-        {body}
-      </button>
-    );
-  }
-
-  return (
-    <div data-slot="candidate-card" className={shellClassName} {...props}>
-      {body}
-    </div>
   );
 }
 

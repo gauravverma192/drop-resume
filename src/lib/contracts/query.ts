@@ -106,14 +106,94 @@ function submissionQueryOffset(query: SubmissionQuery) {
   return (query.page - 1) * SUBMISSION_PAGE_SIZE;
 }
 
+const defaultSort: SubmissionSort = "createdAt";
+const defaultSortDir: SubmissionSortDir = "desc";
+
+/** First click on a column: names A–Z, everything else high-to-low / newest. */
+const defaultDirForSort: Record<SubmissionSort, SubmissionSortDir> = {
+  createdAt: "desc",
+  yearsExperience: "desc",
+  matchScore: "desc",
+  candidateName: "asc",
+};
+
+function isSubmissionQuery(
+  input: SubmissionQueryInput | SubmissionQuery | null | undefined
+): input is SubmissionQuery {
+  return (
+    input != null &&
+    !(input instanceof URLSearchParams) &&
+    typeof input === "object" &&
+    typeof (input as SubmissionQuery).page === "number" &&
+    typeof (input as SubmissionQuery).sort === "string" &&
+    typeof (input as SubmissionQuery).dir === "string"
+  );
+}
+
+/**
+ * Writes the same keys `parseSubmissionQuery` reads. Defaults stay out of the
+ * URL so `/roles/[id]` and `/roles/[id]?sort=createdAt&dir=desc` are one view.
+ */
+function serializeSubmissionQuery(
+  query: SubmissionQuery,
+  overrides: Partial<SubmissionQuery> = {}
+) {
+  const next = { ...query, ...overrides };
+  const params = new URLSearchParams();
+
+  if (next.q) params.set(filterParams.query, next.q);
+  if (next.status) params.set(filterParams.status, next.status);
+  if (next.minYears != null) {
+    params.set(filterParams.minYears, String(next.minYears));
+  }
+  if (next.minScore != null) {
+    params.set(filterParams.minScore, String(next.minScore));
+  }
+  if (next.skill) params.set(filterParams.skill, next.skill);
+
+  if (next.sort !== defaultSort || next.dir !== defaultSortDir) {
+    params.set(filterParams.sort, next.sort);
+    params.set(filterParams.dir, next.dir);
+  }
+
+  if (next.page > 1) params.set(filterParams.page, String(next.page));
+
+  return params.toString();
+}
+
+function submissionSortHref(
+  pathname: string,
+  query: SubmissionQuery,
+  field: SubmissionSort
+) {
+  const dir: SubmissionSortDir =
+    query.sort === field
+      ? query.dir === "asc"
+        ? "desc"
+        : "asc"
+      : defaultDirForSort[field];
+  const search = serializeSubmissionQuery(query, {
+    sort: field,
+    dir,
+    page: 1,
+  });
+  return search ? `${pathname}?${search}` : pathname;
+}
+
 export {
+  defaultDirForSort,
+  defaultSort,
+  defaultSortDir,
   filterParams,
+  isSubmissionQuery,
   parseSubmissionQuery,
+  serializeSubmissionQuery,
   SUBMISSION_PAGE_SIZE,
   submissionQueryOffset,
   submissionQuerySchema,
   submissionSortDirSchema,
   submissionSortDirs,
+  submissionSortHref,
   submissionSortSchema,
   submissionSorts,
   type FilterParam,

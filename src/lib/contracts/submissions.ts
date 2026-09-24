@@ -19,11 +19,7 @@ type ParseStatus = z.infer<typeof parseStatusSchema>;
 type DisplayStatus = z.infer<typeof displayStatusSchema>;
 
 const MAX_RESUME_BYTES = 2 * 1024 * 1024;
-const ACCEPTED_RESUME_MIME_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-] as const;
+const ACCEPTED_RESUME_MIME_TYPES = ["application/pdf"] as const;
 
 /** Multipart field names on `POST /api/public/submit`. */
 const submitApplicationFormFields = {

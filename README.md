@@ -89,9 +89,28 @@ Both live under **Authentication** in the Supabase dashboard:
    parked in a short-lived cookie when the sign-in starts - a template cannot be
    trusted to carry a query string.
 
+### Resume parsing
+
+`RESUME_PARSER` selects the pipeline (`docling-nvidia` by default, or `gemini-direct` /
+`docling-gemini`). Docling Serve needs `DOCLING_URL` and `DOCLING_API_KEY` (sent as
+`X-Api-Key`). NVIDIA keys come from
+[build.nvidia.com](https://build.nvidia.com/settings/api-keys); Gemini keys from
+[Google AI Studio](https://aistudio.google.com/apikey). Model names default to
+`openai/gpt-oss-20b` and `gemini-3.5-flash`.
+
+```
+RESUME_PARSER=docling-nvidia
+DOCLING_URL=
+DOCLING_API_KEY=
+NVIDIA_API_KEY=
+NVIDIA_MODEL=openai/gpt-oss-20b
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.5-flash
+```
+
 ### Running without cloud credentials
 
-The app is deliberately runnable before any account exists. Two escape hatches keep it
+The app is deliberately runnable before any account exists. A few escape hatches keep it
 that way:
 
 - **Sign-in** mints a local demo session when `NEXT_PUBLIC_SUPABASE_URL` or
@@ -100,8 +119,8 @@ that way:
   missing key makes sign-in fail closed rather than hand out a session.
 - **Turnstile** is bypassed when `TURNSTILE_SECRET_KEY` is unset, so the public form
   submits without a bot check.
-- **Resume parsing** returns fixed placeholder fields when `GEMINI_API_KEY` is unset,
-  so submissions still move from `PENDING` to `DONE`.
+- **Resume parsing** returns fixed placeholder fields when the selected pipeline's
+  keys are absent, so submissions still move from `PENDING` to `DONE`.
 
 Anything that touches the database or file storage needs a real Supabase project, so
 fill in `DATABASE_URL`, `DIRECT_URL`, and the Supabase keys before you expect a
@@ -144,9 +163,8 @@ Connection strings live in [prisma7.config.ts](prisma7.config.ts) rather than in
 
 ## Things worth knowing
 
-- **Resumes must be PDF, JPG, or PNG, max 2 MB.** DOC and DOCX are rejected with a
-  message asking for a PDF - Gemini reads PDFs and images directly, and adding a
-  text-extraction path for one file type is not worth it.
+- **Resumes must be a PDF, max 2 MB.** DOC and DOCX are rejected with a
+  message asking for a PDF.
 - **One submission per email per role.** A repeat email gets a clear rejection rather
   than a second row.
 - **Closing a role is a reversible pause.** It stops new submissions and deletes

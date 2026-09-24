@@ -117,6 +117,7 @@ export default async function RoleInboxPage({
         </Suspense>
         <InboxView
           submissions={list.items}
+          query={query}
           now={new Date().toISOString()}
           empty={
             <EmptyState

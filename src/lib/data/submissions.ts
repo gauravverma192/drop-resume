@@ -9,25 +9,17 @@ function usesPostgres() {
   return Boolean(process.env.DATABASE_URL);
 }
 
-/**
- * Listing still returns an empty page under Postgres until the inbox todo.
- * A role just created in Postgres is not in the mock store, so the mock
- * `ownedRole` check would 404 the inbox — authorize against the real role
- * instead.
- */
-async function listSubmissions(
-  ownerId: string,
-  roleId: string,
-  query: SubmissionQuery
-) {
-  if (!usesPostgres()) {
-    return memory.listSubmissions(ownerId, roleId, query);
-  }
-  const role = await getRole(ownerId, roleId);
-  if (!role) throw new DataError("NOT_FOUND");
-  return { items: [], page: 1, pageCount: 0, total: 0 };
+function repository() {
+  return usesPostgres() ? postgres : memory;
 }
 
+const listSubmissions: DataRepository["listSubmissions"] = (ownerId, roleId, query) =>
+  repository().listSubmissions(ownerId, roleId, query);
+
+/**
+ * CSV of the filtered view is a later todo. Under Postgres we still authorize
+ * so a missing role 404s the same way the table does.
+ */
 async function exportSubmissionsCsv(
   ownerId: string,
   roleId: string,
@@ -45,16 +37,23 @@ async function exportSubmissionsCsv(
 }
 
 const submitApplication: DataRepository["submitApplication"] = (input) =>
-  (usesPostgres() ? postgres : memory).submitApplication(input);
+  repository().submitApplication(input);
 
 const bulkUpdateSubmissionStatus: DataRepository["bulkUpdateSubmissionStatus"] =
-  memory.bulkUpdateSubmissionStatus;
-const getSubmissionFile: DataRepository["getSubmissionFile"] =
-  memory.getSubmissionFile;
-const reparseSubmission: DataRepository["reparseSubmission"] =
-  memory.reparseSubmission;
-const updateSubmissionStatus: DataRepository["updateSubmissionStatus"] =
-  memory.updateSubmissionStatus;
+  (ownerId, ids, status) =>
+    repository().bulkUpdateSubmissionStatus(ownerId, ids, status);
+
+const getSubmissionFile: DataRepository["getSubmissionFile"] = (ownerId, id) =>
+  repository().getSubmissionFile(ownerId, id);
+
+const reparseSubmission: DataRepository["reparseSubmission"] = (ownerId, id) =>
+  repository().reparseSubmission(ownerId, id);
+
+const updateSubmissionStatus: DataRepository["updateSubmissionStatus"] = (
+  ownerId,
+  id,
+  status
+) => repository().updateSubmissionStatus(ownerId, id, status);
 
 export {
   bulkUpdateSubmissionStatus,

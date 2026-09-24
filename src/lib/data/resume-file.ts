@@ -9,7 +9,7 @@ type AcceptedResumeMime = (typeof ACCEPTED_RESUME_MIME_TYPES)[number];
 type ResumeFile = {
   bytes: Uint8Array;
   mime: AcceptedResumeMime;
-  ext: "pdf" | "jpg" | "png";
+  ext: "pdf";
   fileName: string;
   fileSize: number;
 };
@@ -24,25 +24,7 @@ function sniffMime(bytes: Uint8Array): AcceptedResumeMime | null {
   ) {
     return "application/pdf";
   }
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return "image/jpeg";
-  }
-  if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  ) {
-    return "image/png";
-  }
   return null;
-}
-
-function extensionFor(mime: AcceptedResumeMime) {
-  if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/png") return "png";
-  return "pdf";
 }
 
 /**
@@ -69,12 +51,11 @@ async function readResumeFile(file: File): Promise<ResumeFile> {
     throw new DataError("FILE_TYPE_REJECTED");
   }
 
-  const ext = extensionFor(mime);
   return {
     bytes,
     mime,
-    ext,
-    fileName: file.name.trim() || `resume.${ext}`,
+    ext: "pdf",
+    fileName: file.name.trim() || "resume.pdf",
     fileSize: bytes.byteLength,
   };
 }

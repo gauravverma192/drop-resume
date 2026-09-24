@@ -61,6 +61,23 @@ async function uploadResume(
   }
 }
 
+async function downloadResume(storagePath: string) {
+  const env = storageEnv();
+  const objectPath = objectPathFromStoragePath(storagePath);
+  const response = await fetch(objectUrl(env, objectPath), {
+    method: "GET",
+    headers: env.headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not download the resume: ${response.status} ${await response.text()}`
+    );
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 /**
  * Best-effort cleanup after a failed insert. A delete error is logged rather
  * than thrown so the original failure (usually a duplicate email) still wins.
@@ -80,4 +97,50 @@ async function deleteResume(storagePath: string) {
   }
 }
 
-export { deleteResume, RESUMES_BUCKET, uploadResume };
+/**
+ * Short-lived URL the recruiter's browser follows. The bucket stays private;
+ * only this token (and only for `expiresIn` seconds) can read the object.
+ */
+async function signResumeUrl(storagePath: string, expiresIn = 60) {
+  const env = storageEnv();
+  const objectPath = objectPathFromStoragePath(storagePath);
+  const response = await fetch(
+    `${env.url}/storage/v1/object/sign/${RESUMES_BUCKET}/${objectPath}`,
+    {
+      method: "POST",
+      headers: {
+        ...env.headers,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ expiresIn }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not sign the resume URL: ${response.status} ${await response.text()}`
+    );
+  }
+
+  const body = (await response.json()) as {
+    signedURL?: string;
+    signedUrl?: string;
+  };
+  const signed = body.signedURL ?? body.signedUrl;
+  if (!signed) {
+    throw new Error("Could not sign the resume URL: missing signedURL.");
+  }
+  if (signed.startsWith("http://") || signed.startsWith("https://")) {
+    return signed;
+  }
+  const path = signed.startsWith("/") ? signed : `/${signed}`;
+  return `${env.url}/storage/v1${path}`;
+}
+
+export {
+  deleteResume,
+  downloadResume,
+  RESUMES_BUCKET,
+  signResumeUrl,
+  uploadResume,
+};

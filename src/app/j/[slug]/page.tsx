@@ -9,6 +9,9 @@ import { getPublicRole } from "@/lib/data";
 
 import { ApplyFormClient } from "./apply-form-client";
 
+/** Server Actions inherit this. Matches the submit route so parse can finish. */
+export const maxDuration = 120;
+
 export async function generateMetadata({ params }: PageProps<"/j/[slug]">) {
   const { slug } = await params;
   const role = await getPublicRole(slug);

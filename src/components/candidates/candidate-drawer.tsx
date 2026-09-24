@@ -36,6 +36,8 @@ function CandidateDrawer({
   onOpenChange,
   onShortlist,
   onReject,
+  onRetryParse,
+  retrying,
   disabled,
   className,
   ...props
@@ -45,6 +47,8 @@ function CandidateDrawer({
   onOpenChange?: (open: boolean) => void;
   onShortlist?: (submission: SubmissionListItem) => void;
   onReject?: (submission: SubmissionListItem) => void;
+  onRetryParse?: (submission: SubmissionListItem) => void;
+  retrying?: boolean;
   disabled?: boolean;
 }) {
   if (!submission) {
@@ -97,7 +101,22 @@ function CandidateDrawer({
               Open resume
             </a>
           </Button>
+          {submission.parseStatus === "failed" && onRetryParse ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={retrying}
+              onClick={() => onRetryParse(submission)}
+            >
+              Retry parse
+            </Button>
+          ) : null}
         </div>
+
+        {submission.parseStatus === "pending" ? (
+          <p className="mt-4 text-muted-foreground">Resume is being read.</p>
+        ) : null}
 
         {submission.aiSummary ? (
           <p className="mt-4 rounded-lg border border-accent-line bg-accent-subtle px-3.5 py-3 text-foreground-2">

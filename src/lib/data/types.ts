@@ -22,11 +22,17 @@ type SubmitApplicationParams = SubmitApplicationInput & {
   file: File;
 };
 
-type SubmissionFile = {
-  fileName: string;
-  fileMime: string;
-  bytes: Uint8Array;
-};
+type SubmissionFile =
+  | {
+      kind: "inline";
+      fileName: string;
+      fileMime: string;
+      bytes: Uint8Array;
+    }
+  | {
+      kind: "redirect";
+      url: string;
+    };
 
 type DataRepository = {
   listRoles(ownerId: string): Promise<Role[]>;

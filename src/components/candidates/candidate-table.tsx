@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { ChipList } from "@/components/display/chip-list";
 import { RelativeTime } from "@/components/display/relative-time";
@@ -22,6 +25,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  submissionSortHref,
+  type SubmissionQuery,
+  type SubmissionSort,
+} from "@/lib/contracts/query";
+import {
   displayStatus,
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
@@ -41,12 +49,47 @@ function value(content: React.ReactNode) {
   return content == null || content === "" ? <Empty /> : content;
 }
 
-function isOpenable(submission: SubmissionListItem) {
-  return submission.parseStatus === "done";
+function ariaSort(
+  field: SubmissionSort,
+  query: SubmissionQuery
+): React.AriaAttributes["aria-sort"] {
+  if (query.sort !== field) return "none";
+  return query.dir === "asc" ? "ascending" : "descending";
+}
+
+function SortLink({
+  field,
+  query,
+  children,
+}: {
+  field: SubmissionSort;
+  query: SubmissionQuery;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const active = query.sort === field;
+
+  return (
+    <Link
+      href={submissionSortHref(pathname, query, field)}
+      scroll={false}
+      className="inline-flex items-center gap-1 hover:text-foreground"
+    >
+      {children}
+      {active ? (
+        query.dir === "asc" ? (
+          <ArrowUp className="size-3" aria-hidden="true" />
+        ) : (
+          <ArrowDown className="size-3" aria-hidden="true" />
+        )
+      ) : null}
+    </Link>
+  );
 }
 
 function CandidateTable({
   submissions,
+  query,
   selectedIds,
   onSelectedIdsChange,
   onOpenSubmission,
@@ -58,6 +101,7 @@ function CandidateTable({
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
   submissions: readonly SubmissionListItem[];
+  query: SubmissionQuery;
   selectedIds?: readonly string[];
   /** Omit to drop the selection column entirely. */
   onSelectedIdsChange?: (ids: string[]) => void;
@@ -114,30 +158,50 @@ function CandidateTable({
                 />
               </TableHead>
             ) : null}
-            <TableHead>Name</TableHead>
+            <TableHead aria-sort={ariaSort("candidateName", query)}>
+              <SortLink field="candidateName" query={query}>
+                Name
+              </SortLink>
+            </TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Current company</TableHead>
-            <TableHead>YOE</TableHead>
+            <TableHead aria-sort={ariaSort("yearsExperience", query)}>
+              <SortLink field="yearsExperience" query={query}>
+                YOE
+              </SortLink>
+            </TableHead>
             <TableHead>Skills</TableHead>
             <TableHead>Highly skilled at</TableHead>
-            <TableHead>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0} className="inline-flex cursor-help items-center gap-1">
-                    Score
+            <TableHead aria-sort={ariaSort("matchScore", query)}>
+              <span className="inline-flex items-center gap-1">
+                <SortLink field="matchScore" query={query}>
+                  Score
+                </SortLink>
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <span
-                      aria-hidden="true"
-                      className="grid size-3.5 place-items-center rounded-full bg-accent text-[10px] text-accent-foreground"
+                      tabIndex={0}
+                      className="inline-flex cursor-help items-center"
                     >
-                      i
+                      <span
+                        aria-hidden="true"
+                        className="grid size-3.5 place-items-center rounded-full bg-accent text-[10px] text-accent-foreground"
+                      >
+                        i
+                      </span>
+                      <span className="sr-only">{SCORE_HINT}</span>
                     </span>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent className="normal-case">{SCORE_HINT}</TooltipContent>
-              </Tooltip>
+                  </TooltipTrigger>
+                  <TooltipContent className="normal-case">{SCORE_HINT}</TooltipContent>
+                </Tooltip>
+              </span>
             </TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Submitted</TableHead>
+            <TableHead aria-sort={ariaSort("createdAt", query)}>
+              <SortLink field="createdAt" query={query}>
+                Submitted
+              </SortLink>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -152,7 +216,7 @@ function CandidateTable({
             </TableRow>
           ) : null}
           {submissions.map((submission) => {
-            const openable = onOpenSubmission != null && isOpenable(submission);
+            const openable = onOpenSubmission != null;
             const isSelected = selected.has(submission.id);
             const badge = displayStatus(submission);
             const focus = submission.highlySkilledAt

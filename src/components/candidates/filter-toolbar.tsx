@@ -12,12 +12,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { filterParams } from "@/lib/contracts/query";
+import {
+  defaultSort,
+  defaultSortDir,
+  filterParams,
+  parseSubmissionQuery,
+  type SubmissionSort,
+  type SubmissionSortDir,
+} from "@/lib/contracts/query";
 import { displayStatuses, type DisplayStatus } from "@/lib/contracts/submissions";
 import { cn } from "@/lib/utils";
 
 const ALL_STATUSES = "all";
 const COMMIT_DELAY = 300;
+
+const sortOptions = [
+  { value: "createdAt:desc", label: "Newest" },
+  { value: "createdAt:asc", label: "Oldest" },
+  { value: "candidateName:asc", label: "Name A–Z" },
+  { value: "candidateName:desc", label: "Name Z–A" },
+  { value: "yearsExperience:desc", label: "YOE high–low" },
+  { value: "yearsExperience:asc", label: "YOE low–high" },
+  { value: "matchScore:desc", label: "Score high–low" },
+  { value: "matchScore:asc", label: "Score low–high" },
+] as const;
 
 function DebouncedInput({
   value,
@@ -112,6 +130,17 @@ function FilterToolbar({
 
   const read = (key: string) => searchParams.get(key) ?? "";
   const digitsOnly = (value: string) => value.replace(/\D/g, "");
+  const parsed = parseSubmissionQuery(searchParams);
+  const sortValue = `${parsed.sort}:${parsed.dir}`;
+
+  function applySort(value: string) {
+    const [sort, dir] = value.split(":") as [SubmissionSort, SubmissionSortDir];
+    if (sort === defaultSort && dir === defaultSortDir) {
+      setFilters({ [filterParams.sort]: null, [filterParams.dir]: null });
+      return;
+    }
+    setFilters({ [filterParams.sort]: sort, [filterParams.dir]: dir });
+  }
 
   return (
     <div
@@ -179,6 +208,18 @@ function FilterToolbar({
         value={read(filterParams.skill)}
         onCommit={(value) => setFilters({ [filterParams.skill]: value })}
       />
+      <Select value={sortValue} onValueChange={applySort}>
+        <SelectTrigger size="sm" className="shrink-0" aria-label="Sort candidates">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {sortOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

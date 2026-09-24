@@ -52,7 +52,7 @@ The full plan is written to `./001-project-mvp.md`.
 - Role create fields: title (required), company name (optional), description (optional).
 - Background parse via `after()` from `next/server`.
 - Candidate form: name and email required, phone optional, plus the file.
-- Accepted files: **PDF, JPG, PNG only.** DOC and DOCX are rejected with a message
+- Accepted files: **PDF only.** DOC and DOCX are rejected with a message
   telling the candidate to export a PDF, which keeps exactly one parse path.
 - 2 MB cap, well under Vercel's 4.5 MB request body limit.
 - Cloudflare Turnstile plus a per-IP rate limit counted in a Postgres `SubmitAttempt`

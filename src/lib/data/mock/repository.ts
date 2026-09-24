@@ -448,6 +448,7 @@ async function getSubmissionFile(ownerId: string, id: string) {
   const row = await ownedSubmission(ownerId, id);
   if (!row) throw new DataError("NOT_FOUND");
   return {
+    kind: "inline" as const,
     fileName: row.fileName,
     fileMime: row.fileMime,
     bytes: row.bytes,

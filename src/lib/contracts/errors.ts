@@ -26,7 +26,7 @@ const errorMessages: Record<ErrorCode, string> = {
   ROLE_CLOSED: "This role is no longer accepting submissions.",
   DUPLICATE_EMAIL: "This email already submitted for this role.",
   FILE_TOO_LARGE: "That file is over the 2 MB limit. Try a PDF instead.",
-  FILE_TYPE_REJECTED: "PDF, JPG, and PNG only. Export a PDF instead.",
+  FILE_TYPE_REJECTED: "PDF only. Export a PDF instead.",
   RATE_LIMITED: "Too many submissions. Try again in a few minutes.",
   TURNSTILE_FAILED: "Could not verify you are human. Try again.",
 };

@@ -9,6 +9,7 @@ import { CandidateCard } from "@/components/candidates/candidate-card";
 import { CandidateDrawer } from "@/components/candidates/candidate-drawer";
 import { CandidateTable } from "@/components/candidates/candidate-table";
 import type { ErrorEnvelope } from "@/lib/contracts/errors";
+import type { SubmissionQuery } from "@/lib/contracts/query";
 import type {
   ReviewStatus,
   SubmissionListItem,
@@ -34,12 +35,14 @@ async function mutate(input: RequestInfo, init: RequestInit) {
 
 function InboxView({
   submissions,
+  query,
   empty,
   now,
   className,
   ...props
 }: Omit<React.ComponentProps<"div">, "children"> & {
   submissions: readonly SubmissionListItem[];
+  query: SubmissionQuery;
   empty?: React.ReactNode;
   now?: Date | string | number;
 }) {
@@ -58,6 +61,13 @@ function InboxView({
     startTransition(() => {
       router.refresh();
     });
+  }
+
+  function setSelected(id: string, checked: boolean) {
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    setSelectedIds(submissions.filter((item) => next.has(item.id)).map((item) => item.id));
   }
 
   async function setStatus(ids: string[], status: ReviewStatus) {
@@ -118,6 +128,7 @@ function InboxView({
       />
       <CandidateTable
         submissions={submissions}
+        query={query}
         selectedIds={visibleSelectedIds}
         onSelectedIdsChange={setSelectedIds}
         onOpenSubmission={(item) => setOpenId(item.id)}
@@ -130,6 +141,8 @@ function InboxView({
           <CandidateCard
             key={submission.id}
             submission={submission}
+            selected={visibleSelectedIds.includes(submission.id)}
+            onSelectedChange={(checked) => setSelected(submission.id, checked)}
             onOpenSubmission={(item) => setOpenId(item.id)}
             onRetryParse={retryParse}
             retrying={retryingId === submission.id}
@@ -146,6 +159,8 @@ function InboxView({
         disabled={isPending}
         onShortlist={(item) => setStatus([item.id], "shortlisted")}
         onReject={(item) => setStatus([item.id], "rejected")}
+        onRetryParse={retryParse}
+        retrying={retryingId === openSubmission?.id}
       />
     </div>
   );

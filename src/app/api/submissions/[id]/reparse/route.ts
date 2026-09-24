@@ -4,6 +4,9 @@ import { requireUser } from "@/lib/auth/session";
 import { reparseSubmission } from "@/lib/data";
 import { caughtErrorResponse } from "@/lib/http/api";
 
+/** Same budget as submit: Docling + NVIDIA run in `after()`. */
+export const maxDuration = 120;
+
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }

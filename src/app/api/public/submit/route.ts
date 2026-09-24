@@ -9,6 +9,9 @@ import {
 import { DataError, isDataError, submitApplication } from "@/lib/data";
 import { caughtErrorResponse, jsonError } from "@/lib/http/api";
 
+/** NVIDIA alone was 19.5s plus Docling; `after()` shares this budget. */
+export const maxDuration = 120;
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
