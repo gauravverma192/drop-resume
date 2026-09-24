@@ -17,7 +17,7 @@ import { appUrl, roleShareUrl } from "@/lib/app-url";
 import { requirePageUser } from "@/lib/auth/session";
 import {
   parseSubmissionQuery,
-  type SearchParamsRecord,
+  serializeSubmissionQuery,
   type SubmissionQuery,
 } from "@/lib/contracts/query";
 import { getRole, isDataError, listSubmissions } from "@/lib/data";
@@ -33,16 +33,6 @@ function hasActiveFilters(query: SubmissionQuery) {
       query.minScore != null ||
       query.skill
   );
-}
-
-function searchParamsToQuery(searchParams: SearchParamsRecord) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (typeof value === "string" && value.length > 0) {
-      params.set(key, value);
-    }
-  }
-  return params.toString();
 }
 
 export async function generateMetadata({ params }: PageProps<"/roles/[id]">) {
@@ -73,7 +63,7 @@ export default async function RoleInboxPage({
   }
 
   const origin = await appUrl();
-  const exportQuery = searchParamsToQuery(rawSearch);
+  const exportQuery = serializeSubmissionQuery(query, { page: 1 });
   const exportHref = exportQuery
     ? `/api/roles/${role.id}/export?${exportQuery}`
     : `/api/roles/${role.id}/export`;

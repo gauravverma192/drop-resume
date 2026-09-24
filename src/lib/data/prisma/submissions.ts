@@ -13,6 +13,7 @@ import {
   type ReviewStatus,
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
+import { streamSubmissionCsv } from "@/lib/data/csv";
 import { DataError } from "@/lib/data/errors";
 import { createId } from "@/lib/data/ids";
 import { getPrisma } from "@/lib/data/prisma/client";
@@ -209,31 +210,48 @@ function ownedBy(ownerId: string): Prisma.SubmissionWhereInput {
   return { role: { ownerId } };
 }
 
-async function listSubmissions(
-  ownerId: string,
-  roleId: string,
-  query: SubmissionQuery
-) {
-  const prisma = getPrisma();
-  const role = await prisma.role.findFirst({
+async function requireOwnedRole(ownerId: string, roleId: string) {
+  const role = await getPrisma().role.findFirst({
     where: { id: roleId, ownerId },
     select: { id: true },
   });
   if (!role) throw new DataError("NOT_FOUND");
+  return role;
+}
 
+/**
+ * Inbox list and CSV export share this so a filter or sort cannot drift.
+ * Pagination stays in the list; export walks every matching row.
+ */
+async function matchingSubmissions(
+  ownerId: string,
+  roleId: string,
+  query: SubmissionQuery
+) {
   const where: Prisma.SubmissionWhereInput = {
     roleId,
     ...ownedBy(ownerId),
     AND: [await buildSubmissionWhere(query, roleId)],
   };
+  return { where, orderBy: buildSubmissionOrderBy(query) };
+}
 
+async function listSubmissions(
+  ownerId: string,
+  roleId: string,
+  query: SubmissionQuery
+) {
+  await requireOwnedRole(ownerId, roleId);
+  const { where, orderBy } = await matchingSubmissions(ownerId, roleId, query);
+
+  const prisma = getPrisma();
   const total = await prisma.submission.count({ where });
   const pageCount = total === 0 ? 0 : Math.ceil(total / SUBMISSION_PAGE_SIZE);
   const page = Math.min(query.page, Math.max(pageCount, 1));
 
   const rows = await prisma.submission.findMany({
     where,
-    orderBy: buildSubmissionOrderBy(query),
+    orderBy,
     skip: submissionQueryOffset({ ...query, page }),
     take: SUBMISSION_PAGE_SIZE,
     select: submissionListItemSelect,
@@ -245,6 +263,40 @@ async function listSubmissions(
     pageCount,
     total,
   };
+}
+
+/** Bigger than the inbox page so export pays fewer round trips, still bounded. */
+const EXPORT_BATCH_SIZE = 100;
+
+async function* iterateMatchingSubmissions(
+  where: Prisma.SubmissionWhereInput,
+  orderBy: Prisma.SubmissionOrderByWithRelationInput
+) {
+  const prisma = getPrisma();
+  let skip = 0;
+  for (;;) {
+    const batch = await prisma.submission.findMany({
+      where,
+      orderBy,
+      skip,
+      take: EXPORT_BATCH_SIZE,
+      select: submissionListItemSelect,
+    });
+    if (batch.length === 0) return;
+    for (const row of batch) yield toListItem(row);
+    if (batch.length < EXPORT_BATCH_SIZE) return;
+    skip += batch.length;
+  }
+}
+
+async function exportSubmissionsCsv(
+  ownerId: string,
+  roleId: string,
+  query: SubmissionQuery
+) {
+  await requireOwnedRole(ownerId, roleId);
+  const { where, orderBy } = await matchingSubmissions(ownerId, roleId, query);
+  return streamSubmissionCsv(iterateMatchingSubmissions(where, orderBy));
 }
 
 async function updateSubmissionStatus(
@@ -292,6 +344,7 @@ export {
   buildSubmissionOrderBy,
   buildSubmissionWhere,
   bulkUpdateSubmissionStatus,
+  exportSubmissionsCsv,
   getSubmissionFile,
   listSubmissions,
   reparseSubmission,

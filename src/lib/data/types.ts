@@ -50,7 +50,7 @@ type DataRepository = {
     ownerId: string,
     roleId: string,
     query: SubmissionQuery
-  ): Promise<string>;
+  ): Promise<ReadableStream<Uint8Array>>;
   submitApplication(input: SubmitApplicationParams): Promise<{ slug: string }>;
   updateSubmissionStatus(
     ownerId: string,

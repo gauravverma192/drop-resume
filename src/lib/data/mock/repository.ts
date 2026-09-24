@@ -12,13 +12,13 @@ import type {
   UpdateRoleInput,
 } from "@/lib/contracts/roles";
 import {
-  displayStatus,
   submissionFileUrl,
   whereForDisplayStatus,
   type ReviewStatus,
   type SubmissionList,
   type SubmissionListItem,
 } from "@/lib/contracts/submissions";
+import { streamSubmissionCsv } from "@/lib/data/csv";
 import { DataError } from "@/lib/data/errors";
 import { createId } from "@/lib/data/ids";
 import {
@@ -192,11 +192,6 @@ function queryRows(roleId: string, query: SubmissionQuery) {
   return rows;
 }
 
-function csvCell(value: string) {
-  if (/[",\n\r]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
-  return value;
-}
-
 async function listRoles(ownerId: string): Promise<Role[]> {
   const db = await ready();
   return [...db.roles.values()]
@@ -288,45 +283,10 @@ async function exportSubmissionsCsv(
   ownerId: string,
   roleId: string,
   query: SubmissionQuery
-): Promise<string> {
+) {
   await ready();
   if (!ownedRole(ownerId, roleId)) throw new DataError("NOT_FOUND");
-
-  const rows = queryRows(roleId, query);
-  const header = [
-    "name",
-    "email",
-    "phone",
-    "title",
-    "company",
-    "yearsExperience",
-    "skills",
-    "highlySkilledAt",
-    "matchScore",
-    "status",
-    "submitted",
-  ];
-
-  const lines = [
-    header.join(","),
-    ...rows.map((row) =>
-      [
-        csvCell(row.candidateName),
-        csvCell(row.candidateEmail),
-        csvCell(row.candidatePhone ?? ""),
-        csvCell(row.currentTitle ?? ""),
-        csvCell(row.currentCompany ?? ""),
-        csvCell(row.yearsExperience == null ? "" : String(row.yearsExperience)),
-        csvCell(row.skills.join("; ")),
-        csvCell(row.highlySkilledAt ?? ""),
-        csvCell(row.matchScore == null ? "" : String(row.matchScore)),
-        csvCell(displayStatus(row)),
-        csvCell(row.createdAt),
-      ].join(",")
-    ),
-  ];
-
-  return `${lines.join("\n")}\n`;
+  return streamSubmissionCsv(queryRows(roleId, query).map(toListItem));
 }
 
 async function submitApplication(input: SubmitApplicationParams) {
