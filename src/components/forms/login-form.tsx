@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { ErrorBanner } from "@/components/feedback/error-banner";
 import { Field } from "@/components/forms/field";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,7 @@ function LoginForm({
       <h1 className="font-heading text-[1.375rem] font-bold tracking-[-0.04em] sm:text-2xl">
         Sign in
       </h1>
+      {error ? <ErrorBanner className="mt-4">{error}</ErrorBanner> : null}
       <form action={googleAction}>
         {nextField}
         <SubmitButton
@@ -81,7 +83,7 @@ function LoginForm({
       </div>
       <form action={action} className="grid gap-3.5">
         {nextField}
-        <Field label="Email" htmlFor="email" error={error}>
+        <Field label="Email" htmlFor="email">
           <Input
             id="email"
             name="email"

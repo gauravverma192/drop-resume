@@ -24,7 +24,6 @@ import {
   reviewStatusToPrisma,
 } from "@/lib/data/prisma/submission-query";
 import {
-  assertBotCheck,
   normalizeCandidateEmail,
   readResumeFile,
   resumeStoragePath,
@@ -111,8 +110,6 @@ async function submitApplication(input: SubmitApplicationParams) {
   });
   if (!role) throw new DataError("NOT_FOUND");
   if (!role.isOpen) throw new DataError("ROLE_CLOSED");
-
-  assertBotCheck(input.turnstileToken);
 
   const resume = await readResumeFile(input.file);
   const candidateEmail = normalizeCandidateEmail(input.candidateEmail);

@@ -148,7 +148,7 @@ function FilterToolbar({
       data-pending={isPending || undefined}
       aria-busy={isPending}
       className={cn(
-        "mb-4 flex items-center gap-2 overflow-x-auto pb-0.5",
+        "mb-4 flex items-center gap-2 overflow-x-auto pb-0.5 data-pending:opacity-60",
         className
       )}
       {...props}

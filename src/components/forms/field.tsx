@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { ErrorBanner } from "@/components/feedback/error-banner";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -56,13 +57,9 @@ function Field({
       {control}
       {hint ? <FieldHint id={hintId}>{hint}</FieldHint> : null}
       {error ? (
-        <p
-          id={errorId}
-          role="alert"
-          className="text-xs font-semibold text-destructive"
-        >
+        <ErrorBanner id={errorId} className="text-xs">
           {error}
-        </p>
+        </ErrorBanner>
       ) : null}
     </div>
   );

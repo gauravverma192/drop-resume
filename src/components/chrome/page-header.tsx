@@ -33,7 +33,7 @@ function PageHeader({
       {actions ? (
         <div
           data-slot="page-header-actions"
-          className="flex shrink-0 items-center gap-2 min-[860px]:self-start"
+          className="flex flex-wrap items-center gap-2 min-[860px]:shrink-0 min-[860px]:self-start"
         >
           {actions}
         </div>

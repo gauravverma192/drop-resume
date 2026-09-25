@@ -10,7 +10,7 @@ function RoleActiveToggle({
   active,
   onActiveChange,
   activeLabel = "Active",
-  inactiveLabel = "Inactive",
+  inactiveLabel = "Closed",
   disabled,
   className,
   ...props

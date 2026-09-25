@@ -13,7 +13,7 @@ export default function JobNotFound() {
         <EmptyState
           as="h1"
           title="Role not found"
-          description="This apply link is not valid. Check the URL and try again."
+          description="This apply link isn’t valid. Ask the hiring team for a new one."
           action={
             <Button asChild>
               <Link href="/">Back home</Link>

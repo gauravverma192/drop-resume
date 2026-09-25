@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { ErrorBanner } from "@/components/feedback/error-banner";
 import { Field } from "@/components/forms/field";
 import { ResumeDropzone } from "@/components/forms/resume-dropzone";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -42,11 +43,7 @@ function ApplyForm({
       {...props}
     >
       <input type="hidden" name={submitApplicationFormFields.slug} value={slug} />
-      {errors?.form ? (
-        <p role="alert" className="text-sm font-semibold text-destructive">
-          {errors.form}
-        </p>
-      ) : null}
+      {errors?.form ? <ErrorBanner>{errors.form}</ErrorBanner> : null}
       <Field
         label="Full name"
         htmlFor="candidate-name"
@@ -97,9 +94,7 @@ function ApplyForm({
       <div className="grid gap-1.5">
         <TurnstileWidget />
         {errors?.turnstileToken ? (
-          <p role="alert" className="text-xs font-semibold text-destructive">
-            {errors.turnstileToken}
-          </p>
+          <ErrorBanner className="text-xs">{errors.turnstileToken}</ErrorBanner>
         ) : null}
       </div>
       <SubmitButton size="lg" className="mt-1 w-full" pendingLabel="Submitting…">

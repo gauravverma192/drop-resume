@@ -34,7 +34,7 @@ function rejectionReason(file: File, maxBytes: number) {
       : "PDF only. Export a PDF instead.";
   }
   if (file.size > maxBytes) {
-    return `That file is ${formatSize(file.size)}. The limit is ${formatSize(maxBytes)}.`;
+    return `That file is ${formatSize(file.size)}. The limit is ${formatSize(maxBytes)}. Export a smaller PDF instead.`;
   }
   return null;
 }
@@ -160,10 +160,18 @@ function ResumeDropzone({
         )}
       </label>
       {error ? (
-        <p role="alert" className="text-xs font-semibold text-destructive">
+        <p
+          role="alert"
+          className="rounded-lg bg-destructive-bg px-3 py-2.5 text-xs font-semibold text-destructive"
+        >
           {error}
         </p>
-      ) : null}
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          PDF only. Word files and large phone photos won’t go through — export a
+          PDF under {formatSize(maxBytes)}.
+        </p>
+      )}
       {file ? (
         <Button type="button" variant="ghost" size="sm" onClick={clear}>
           <X />

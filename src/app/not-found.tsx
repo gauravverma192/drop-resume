@@ -13,7 +13,7 @@ export default function NotFound() {
         <EmptyState
           as="h1"
           title="Page not found"
-          description="That URL does not match a role, a job link, or a page in DropResume."
+          description="That URL does not match a role, an apply link, or a page in DropResume."
           action={
             <Button asChild>
               <Link href="/">Back home</Link>

@@ -11,6 +11,7 @@ import type {
 import { DataError } from "@/lib/data/errors";
 import { getPrisma } from "@/lib/data/prisma/client";
 import { roleSlug } from "@/lib/data/slug";
+import { deleteRoleResumes } from "@/lib/storage/resumes";
 
 /** How many fresh suffixes a create will try before giving up. */
 const SLUG_ATTEMPTS = 5;
@@ -140,9 +141,19 @@ async function updateRole(
 }
 
 async function deleteRole(ownerId: string, id: string): Promise<void> {
+  const prisma = getPrisma();
+  const role = await prisma.role.findFirst({
+    where: { id, ownerId },
+    select: { id: true },
+  });
+  if (!role) throw new DataError("NOT_FOUND");
+
+  // Folder first so a storage failure leaves the role in place for a retry.
+  // Closing a role never reaches here; only a full delete removes files.
+  await deleteRoleResumes(role.id);
+
   try {
-    // Submissions go with it through `onDelete: Cascade`.
-    await getPrisma().role.delete({ where: { id, ownerId } });
+    await prisma.role.delete({ where: { id: role.id, ownerId } });
   } catch (error) {
     rethrowAsNotFound(error);
   }

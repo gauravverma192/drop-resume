@@ -52,7 +52,7 @@ export default async function HomePage() {
         {roles.length === 0 ? (
           <EmptyState
             title="No roles yet"
-            description="Create a role, share the link, and candidates will land in one list."
+            description="A role is one hiring link. Create it, post the URL, and every resume lands in one list."
             action={
               <Button asChild>
                 <Link href="/roles/new">New role</Link>

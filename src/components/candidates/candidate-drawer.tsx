@@ -117,6 +117,11 @@ function CandidateDrawer({
         {submission.parseStatus === "pending" ? (
           <p className="mt-4 text-muted-foreground">Resume is being read.</p>
         ) : null}
+        {submission.parseStatus === "failed" ? (
+          <p className="mt-4 rounded-lg bg-destructive-bg px-3 py-2.5 text-[0.8125rem] font-semibold text-destructive">
+            This resume couldn’t be read. Open the file, or retry the parse.
+          </p>
+        ) : null}
 
         {submission.aiSummary ? (
           <p className="mt-4 rounded-lg border border-accent-line bg-accent-subtle px-3.5 py-3 text-foreground-2">

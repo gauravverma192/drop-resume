@@ -13,6 +13,7 @@ import {
   submitApplicationFormFields,
 } from "@/lib/contracts/submissions";
 import { DataError, isDataError, submitApplication } from "@/lib/data";
+import { requireUploadedResume } from "@/lib/data/resume-file";
 
 type ApplyFormState = {
   errors?: ApplyFormErrors;
@@ -72,20 +73,19 @@ async function submitApplicationAction(
     throw error;
   }
 
-  const file = formData.get(submitApplicationFormFields.resume);
-  if (!(file instanceof File) || file.size === 0) {
-    return {
-      values,
-      errors: { resume: "Attach a resume." },
-    };
-  }
-
   let result;
   try {
+    const file = requireUploadedResume(
+      formData.get(submitApplicationFormFields.resume)
+    );
     result = await submitApplication({ ...input, file });
   } catch (error) {
     if (isDataError(error)) {
-      if (error.code === "ROLE_CLOSED" || error.code === "NOT_FOUND") {
+      if (
+        error.code === "ROLE_CLOSED" ||
+        error.code === "NOT_FOUND" ||
+        error.code === "RATE_LIMITED"
+      ) {
         return formError(error.message, values);
       }
       if (error.code === "DUPLICATE_EMAIL") {

@@ -1,6 +1,9 @@
 import * as memory from "@/lib/data/mock/repository";
 import * as postgres from "@/lib/data/prisma/submissions";
 import type { DataRepository } from "@/lib/data/types";
+import { requestClientIp } from "@/lib/http/client-ip";
+import { enforceSubmitRateLimit } from "@/lib/security/rate-limit";
+import { verifyTurnstile } from "@/lib/security/turnstile";
 
 function usesPostgres() {
   return Boolean(process.env.DATABASE_URL);
@@ -19,8 +22,12 @@ const exportSubmissionsCsv: DataRepository["exportSubmissionsCsv"] = (
   query
 ) => repository().exportSubmissionsCsv(ownerId, roleId, query);
 
-const submitApplication: DataRepository["submitApplication"] = (input) =>
-  repository().submitApplication(input);
+const submitApplication: DataRepository["submitApplication"] = async (input) => {
+  const ip = await requestClientIp();
+  await verifyTurnstile(input.turnstileToken, ip);
+  await enforceSubmitRateLimit(ip);
+  return repository().submitApplication(input);
+};
 
 const bulkUpdateSubmissionStatus: DataRepository["bulkUpdateSubmissionStatus"] =
   (ownerId, ids, status) =>

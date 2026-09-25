@@ -28,10 +28,10 @@ function sniffMime(bytes: Uint8Array): AcceptedResumeMime | null {
 }
 
 /**
- * Size and magic-byte checks live here so the mock store and Postgres path
- * cannot drift. The browser MIME string is ignored on purpose.
+ * Empty and oversized files are rejected from the declared size before any
+ * bytes are read. `readResumeFile` still re-checks the buffer length.
  */
-async function readResumeFile(file: File): Promise<ResumeFile> {
+function requireUploadedResume(file: FormDataEntryValue | File | null): File {
   if (!(file instanceof File) || file.size === 0) {
     throw new DataError("VALIDATION_ERROR", "Attach a resume.", {
       resume: "Attach a resume.",
@@ -40,8 +40,17 @@ async function readResumeFile(file: File): Promise<ResumeFile> {
   if (file.size > MAX_RESUME_BYTES) {
     throw new DataError("FILE_TOO_LARGE");
   }
+  return file;
+}
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
+/**
+ * Size and magic-byte checks live here so the mock store and Postgres path
+ * cannot drift. The browser MIME string is ignored on purpose.
+ */
+async function readResumeFile(file: File): Promise<ResumeFile> {
+  const uploaded = requireUploadedResume(file);
+
+  const bytes = new Uint8Array(await uploaded.arrayBuffer());
   if (bytes.byteLength > MAX_RESUME_BYTES) {
     throw new DataError("FILE_TOO_LARGE");
   }
@@ -55,7 +64,7 @@ async function readResumeFile(file: File): Promise<ResumeFile> {
     bytes,
     mime,
     ext: "pdf",
-    fileName: file.name.trim() || "resume.pdf",
+    fileName: uploaded.name.trim() || "resume.pdf",
     fileSize: bytes.byteLength,
   };
 }
@@ -64,21 +73,14 @@ function resumeStoragePath(roleId: string, submissionId: string, ext: ResumeFile
   return `resumes/${roleId}/${submissionId}.${ext}`;
 }
 
-/** Turnstile verification itself is a later todo; this only requires a token when a secret is configured. */
-function assertBotCheck(turnstileToken?: string) {
-  if (process.env.TURNSTILE_SECRET_KEY && !turnstileToken) {
-    throw new DataError("TURNSTILE_FAILED");
-  }
-}
-
 function normalizeCandidateEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
 export {
-  assertBotCheck,
   normalizeCandidateEmail,
   readResumeFile,
+  requireUploadedResume,
   resumeStoragePath,
   type ResumeFile,
 };

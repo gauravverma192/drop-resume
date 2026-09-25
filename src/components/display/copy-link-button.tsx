@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Check, Copy } from "lucide-react";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,7 @@ function CopyLinkButton({
     try {
       await navigator.clipboard.writeText(value);
     } catch {
+      toast.error("Couldn’t copy the link. Select it from the address bar instead.");
       return;
     }
 

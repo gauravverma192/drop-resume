@@ -22,7 +22,6 @@ import { streamSubmissionCsv } from "@/lib/data/csv";
 import { DataError } from "@/lib/data/errors";
 import { createId } from "@/lib/data/ids";
 import {
-  assertBotCheck,
   normalizeCandidateEmail,
   readResumeFile,
   resumeStoragePath,
@@ -300,8 +299,6 @@ async function submitApplication(input: SubmitApplicationParams) {
   }
   if (!role) throw new DataError("NOT_FOUND");
   if (!role.isOpen) throw new DataError("ROLE_CLOSED");
-
-  assertBotCheck(input.turnstileToken);
 
   const resume = await readResumeFile(input.file);
   const email = normalizeCandidateEmail(input.candidateEmail);

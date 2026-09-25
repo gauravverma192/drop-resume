@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 
@@ -118,8 +119,19 @@ export default async function RoleInboxPage({
               }
               description={
                 hasActiveFilters(query)
-                  ? "Try a wider filter, or clear search to see everyone."
-                  : "Share the role link and candidates will land here."
+                  ? "Nothing in this role matches those filters. Widen them, or clear them to see everyone."
+                  : "Copy the role link and post it. Every resume that comes in lands in this list."
+              }
+              action={
+                hasActiveFilters(query) ? (
+                  <Button variant="outline" asChild>
+                    <Link href={`/roles/${role.id}`}>Clear filters</Link>
+                  </Button>
+                ) : (
+                  <CopyLinkButton value={roleShareUrl(origin, role.slug)}>
+                    Copy link
+                  </CopyLinkButton>
+                )
               }
             />
           }

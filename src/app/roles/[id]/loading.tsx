@@ -14,11 +14,18 @@ export default function InboxLoading() {
             <Skeleton className="h-7 w-64 max-w-full" />
             <Skeleton className="mt-2 h-4 w-40" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Skeleton className="h-9 w-28 rounded-full" />
             <Skeleton className="size-9 rounded-md" />
             <Skeleton className="size-9 rounded-md" />
+            <Skeleton className="size-9 rounded-md" />
           </div>
+        </div>
+        <div className="mb-4 flex gap-2 overflow-hidden">
+          <Skeleton className="h-9 w-60 shrink-0" />
+          <Skeleton className="h-9 w-32 shrink-0" />
+          <Skeleton className="h-9 w-27 shrink-0" />
+          <Skeleton className="h-9 w-27 shrink-0" />
         </div>
         <CandidateTableSkeleton />
       </PageContainer>

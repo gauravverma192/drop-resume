@@ -7,6 +7,7 @@ import {
   submitApplicationFormFields,
 } from "@/lib/contracts/submissions";
 import { DataError, isDataError, submitApplication } from "@/lib/data";
+import { requireUploadedResume } from "@/lib/data/resume-file";
 import { caughtErrorResponse, jsonError } from "@/lib/http/api";
 
 /** NVIDIA alone was 19.5s plus Docling; `after()` shares this budget. */
@@ -25,12 +26,9 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    const file = formData.get(submitApplicationFormFields.resume);
-    if (!(file instanceof File) || file.size === 0) {
-      throw new DataError("VALIDATION_ERROR", "Attach a resume.", {
-        resume: "Attach a resume.",
-      });
-    }
+    const file = requireUploadedResume(
+      formData.get(submitApplicationFormFields.resume)
+    );
 
     const result = await submitApplication({ ...input, file });
     const origin = new URL(request.url).origin;
