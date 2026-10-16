@@ -46,8 +46,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Skips static assets and the public candidate paths, which never read a session.
+  // Skips static assets, the analytics script and beacon, and the public
+  // candidate paths, which never read a session.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|j/|api/public/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|_vercel/|j/|api/public/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
